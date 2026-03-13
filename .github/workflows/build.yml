@@ -7,42 +7,24 @@ on:
     branches: [ "*" ]
 
 jobs:
-  call-workflow-1:
-    uses: ./.github/workflows/build_solvers.yml
-
   build_wheels:
-    needs: [call-workflow-1]
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
       matrix:
         os: [ubuntu-latest,
-            # macos-latest
+        # macos-latest
         ]
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download solver libs
-        uses: actions/download-artifact@v4
-        with:
-          name: solver-libs-${{ matrix.os }}
-          path: solver-libs
-
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.4.0
         env:
-          CIBW_BEFORE_ALL_LINUX: >
-            cp -r {project}/solver-libs/klay     /usr/local/ &&
-            cp -r {project}/solver-libs/lib      /usr/local/ &&
-            cp -r {project}/solver-libs/include  /usr/local/ &&
-            cp -r {project}/solver-libs/bin      /usr/local/
-          CIBW_BEFORE_ALL_MACOS: >
-            sudo cp -r {project}/solver-libs/klay     /usr/local/ &&
-            sudo cp -r {project}/solver-libs/lib      /usr/local/ &&
-            sudo cp -r {project}/solver-libs/include  /usr/local/ &&
-            sudo cp -r {project}/solver-libs/bin      /usr/local/
+          CIBW_BEFORE_ALL: "bash {project}/scripts/build_deps.sh"
+          CIBW_ENVIRONMENT_LINUX: PATH="/opt/python/cp311-cp311/bin:$PATH"
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: "pytest {project}/tests"
           CIBW_SKIP: cp38-* cp313-* pp* *i686 *ppc64le *s390x *win32* *musllinux*
