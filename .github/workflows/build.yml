@@ -33,7 +33,12 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.4.0
         env:
-          CIBW_BEFORE_ALL: >
+          CIBW_BEFORE_ALL_LINUX: >
+            cp -r {project}/solver-libs/klay     /usr/local/ &&
+            cp -r {project}/solver-libs/lib      /usr/local/ &&
+            cp -r {project}/solver-libs/include  /usr/local/ &&
+            cp -r {project}/solver-libs/bin      /usr/local/
+          CIBW_BEFORE_ALL_MACOS: >
             sudo cp -r {project}/solver-libs/klay     /usr/local/ &&
             sudo cp -r {project}/solver-libs/lib      /usr/local/ &&
             sudo cp -r {project}/solver-libs/include  /usr/local/ &&
