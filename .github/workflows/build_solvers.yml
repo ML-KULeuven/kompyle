@@ -313,13 +313,15 @@ jobs:
         cp -r /usr/local/lib/libbreakid*        solver-artifacts/lib/
         cp -r /usr/local/lib/libsbva*           solver-artifacts/lib/
         cp -r /usr/local/lib/libapproxmc*       solver-artifacts/lib/
+        cp -r /usr/local/lib/ganak*             solver-artifacts/lib/
+        cp -r /usr/local/lib/klay*              solver-artifacts/lib/
 
-        for pkg in cryptominisat5 arjun breakid sbva approxmc; do
           find /usr/local/lib/cmake -maxdepth 2 -iname "${pkg}*" \
           -type d -exec cp -r {} solver-artifacts/lib/cmake/ \;
+        for pkg in cryptominisat5 arjun breakid sbva approxmc ganak klay; do
         done
 
-        for pkg in cryptominisat5 arjun breakid sbva approxmc; do
+        for pkg in cryptominisat5 arjun breakid sbva approxmc ganak klay; do
           [ -d /usr/local/include/${pkg} ] && \
           cp -r /usr/local/include/${pkg} solver-artifacts/include/
         done
