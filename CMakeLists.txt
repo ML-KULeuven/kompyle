@@ -70,8 +70,14 @@ foreach(lib cryptominisat5 arjun ganak sbva breakid approxmc)
 endforeach()
 install(FILES ${CADICAL_LIB} ${CADIBACK_LIB} DESTINATION kompyle)
 
+
+set(RPATH_ORIGIN "$ORIGIN")
+if(APPLE)
+  set(RPATH_ORIGIN "@loader_path")
+endif()
+
 set_target_properties(kompyle PROPERTIES
-    INSTALL_RPATH "$ORIGIN:$ORIGIN/../klay"
+    INSTALL_RPATH "${RPATH_ORIGIN}:${RPATH_ORIGIN}/../klay"
 )
 
 # NOTE(Ibrahim):
@@ -97,7 +103,7 @@ target_link_libraries(pkompyle PRIVATE kompyle klay)
 # NOTE(Ibrahim):
 # sketchy, but if installed system wide, this wouldn't be necssary...
 set_target_properties(pkompyle PROPERTIES
-    INSTALL_RPATH "$ORIGIN:$ORIGIN/../klay"
+    INSTALL_RPATH "${RPATH_ORIGIN}:${RPATH_ORIGIN}/../klay"
 )
 
 # NOTE(Ibrahim):
