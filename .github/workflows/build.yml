@@ -34,7 +34,8 @@ jobs:
         uses: pypa/cibuildwheel@v3.4.0
         env:
           CIBW_BEFORE_ALL: >
-            sudo cp -r {project}/solver-libs/lib /usr/local/ &&
+            sudo cp -r {project}/solver-libs/klay     /usr/local/ &&
+            sudo cp -r {project}/solver-libs/lib      /usr/local/ &&
             sudo cp -r {project}/solver-libs/include  /usr/local/ &&
             sudo cp -r {project}/solver-libs/bin      /usr/local/
           CIBW_TEST_REQUIRES: pytest
