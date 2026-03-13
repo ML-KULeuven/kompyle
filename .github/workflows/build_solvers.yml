@@ -108,11 +108,13 @@ jobs:
       run: |
         sudo cp cadical/build/libcadical.so  /usr/local/lib/
         sudo cp cadiback/libcadiback.so      /usr/local/lib/
+        sudo ldconfig
+
     - name: Install cadical and cadiback libs (macOS)
       if: contains(matrix.os, 'macos')
       run: |
-        sudo cp cadical/build/libcadical.dylib  /usr/local/lib/
-        sudo cp cadiback/libcadiback.dylib      /usr/local/lib/
+        sudo cp cadical/build/libcadical.so /usr/local/lib/
+        sudo cp cadiback/libcadiback.so     /usr/local/lib/
 
     - name: Checkout breakid
       uses: actions/checkout@v4
