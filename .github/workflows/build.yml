@@ -32,8 +32,8 @@ jobs:
         uses: pypa/cibuildwheel@v3.4.0
         env:
           CIBW_BEFORE_ALL: >
-            cp -r {project}/solver-libs/lib /usr/local/ &&
-            cp -r {project}/solver-libs/include /usr/local/
+            sudo cp -r {project}/solver-libs/lib /usr/local/ &&
+            sudo cp -r {project}/solver-libs/include /usr/local/
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: "pytest {project}/tests"
           CIBW_SKIP: cp38-* cp313-* pp* *i686 *ppc64le *s390x *win32* *musllinux*
