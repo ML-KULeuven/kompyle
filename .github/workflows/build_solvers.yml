@@ -302,6 +302,7 @@ jobs:
 
     - name: Stage solver artifacts
       run: |
+        mkdir -p solver-artifacts/bin
         mkdir -p solver-artifacts/lib
         mkdir -p solver-artifacts/include
         mkdir -p solver-artifacts/lib/cmake
@@ -315,6 +316,12 @@ jobs:
         cp -r /usr/local/lib/libapproxmc*       solver-artifacts/lib/
         cp -r /usr/local/lib/libganak*          solver-artifacts/lib/
         cp -r /usr/local/lib/libklay*           solver-artifacts/lib/
+
+        cp /usr/local/bin/arjun                 solver-artifacts/bin/
+        cp /usr/local/bin/ganak                 solver-artifacts/bin/
+        cp /usr/local/bin/sbva                  solver-artifacts/bin/
+        cp /usr/local/bin/breakid               solver-artifacts/bin/
+        cp /usr/local/bin/approxmc              solver-artifacts/bin/
 
         for pkg in cryptominisat5 arjun breakid sbva approxmc ganak klay; do
           find /usr/local/lib/cmake -maxdepth 2 -iname "${pkg}*" -type d \
