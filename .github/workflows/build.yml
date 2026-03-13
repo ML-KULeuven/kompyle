@@ -1,0 +1,89 @@
+name: build
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "*" ]
+
+jobs:
+  call-workflow-1:
+    uses: ./.github/workflows/build_solvers.yml
+
+  build_wheels:
+    needs: [call-workflow-1]
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download solver libs
+        uses: actions/download-artifact@v4
+        with:
+          name: solver-libs-${{ matrix.os }}
+          path: solver-libs
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v3.4.0
+        env:
+          CIBW_BEFORE_ALL: >
+            cp -r {project}/solver-libs/lib /usr/local/ &&
+            cp -r {project}/solver-libs/include /usr/local/
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: "pytest {project}/tests"
+          CIBW_SKIP: cp38-* cp313-* pp* *i686 *ppc64le *s390x *win32* *musllinux*
+          CIBW_TEST_SKIP: cp39-macosx_x86_64 cp310-macosx_x86_64 cp311-macosx_x86_64 cp312-macosx_x86_64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: Prepare source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Build
+        run: |
+          python -m pip install build
+          python -m build --sdist
+      - name: Store artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-source
+          path: dist/*.tar.gz
+
+  # upload_wheels:
+  #   name: Upload wheels to PyPI
+  #   runs-on: ubuntu-latest
+  #   needs: [build_wheels, build_sdist]
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+  #   environment:
+  #     name: pypi
+  #     url: https://pypi.org/p/kompyle
+  #   permissions:
+  #     id-token: write
+  #
+  #   steps:
+  #     - uses: actions/download-artifact@v4
+  #       with:
+  #         pattern: dist-*
+  #         merge-multiple: true
+  #         path: dist
+  #
+  #     - name: Publish package to PyPI
+  #       uses: pypa/gh-action-pypi-publish@release/v1
+  #       with:
+  #         packages-dir: dist/
+  #         skip-existing: true
