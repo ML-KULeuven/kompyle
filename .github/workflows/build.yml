@@ -24,8 +24,8 @@ jobs:
         uses: pypa/cibuildwheel@v3.4.0
         env:
           CIBW_BEFORE_ALL: "bash {project}/scripts/build_deps.sh"
-          # CIBW_TEST_REQUIRES: pytest
-          # CIBW_TEST_COMMAND: "pytest {project}/tests"
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: "pytest {project}/tests"
           CIBW_SKIP: cp38-* cp39-* cp313-* pp* *i686 *ppc64le *s390x *win32* *musllinux*
           CIBW_TEST_SKIP: cp39-macosx_x86_64 cp310-macosx_x86_64 cp311-macosx_x86_64 cp312-macosx_x86_64
 
