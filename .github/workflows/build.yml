@@ -24,6 +24,10 @@ jobs:
         uses: pypa/cibuildwheel@v3.4.0
         env:
           CIBW_BEFORE_ALL: "bash {project}/scripts/build_deps.sh"
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
+            auditwheel repair
+            --exclude libklay.so
+            -w {dest_dir} {wheel}
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: "pytest {project}/tests"
           CIBW_SKIP: cp38-* cp39-* cp313-* pp* *i686 *ppc64le *s390x *win32* *musllinux*
