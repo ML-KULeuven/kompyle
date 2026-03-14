@@ -173,11 +173,14 @@ cmake --install .
 cd ../../
 
 # ============================================================
-# target
+# klay
 # ============================================================
 
 git clone https://github.com/IbrahimElk/klay.git
 cd klay
-git checkout ref-separation-of-concerns
-/opt/python/cp311-cp311/bin/python -m pip install .
+git checkout rel-separation-of-concerns
+cmake -S . -B build
+cmake --build build -j$(nproc)
+cmake --install build
 cd ..
+ldconfig
