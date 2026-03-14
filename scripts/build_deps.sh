@@ -172,15 +172,16 @@ cmake --build . -j$(nproc)
 cmake --install .
 cd ../../
 
-# ============================================================
-# klay
-# ============================================================
-
-git clone https://github.com/IbrahimElk/klay.git
-cd klay
-git checkout rel-separation-of-concerns
-cmake -S . -B build
-cmake --build build -j$(nproc)
-cmake --install build
-cd ..
-ldconfig
+# # ============================================================
+# # klay
+# # ============================================================
+#
+# git clone https://github.com/IbrahimElk/klay.git
+# cd klay
+# git checkout rel-separation-of-concerns
+# cmake -S . -B build
+# cmake --build build -j$(nproc)
+# cmake --install build
+# cd ..
+#
+# [[ "$(uname)" == "Linux" ]] && ldconfig
