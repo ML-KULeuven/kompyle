@@ -179,5 +179,5 @@ cd ../../
 git clone https://github.com/IbrahimElk/klay.git
 cd klay
 git checkout ref-separation-of-concerns
-python -m pip install .
+/opt/python/cp311-cp311/bin/python -m pip install .
 cd ..
