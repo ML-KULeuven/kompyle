@@ -114,17 +114,17 @@ install(TARGETS pkompyle LIBRARY DESTINATION kompyle)
 # -----------------------------------------------
 # PYTHON KOMPYLE EXTENSION STUBS
 # -----------------------------------------------
-
-# https://nanobind.readthedocs.io/en/latest/typing.html#cmake-interface
-nanobind_add_stub(
-  pkompyle_stub
-  MODULE pkompyle
-  OUTPUT pkompyle.pyi
-  PYTHON_PATH $<TARGET_FILE_DIR:pkompyle>
-  DEPENDS pkompyle
-)
-
-install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/pkompyle.pyi"
-  DESTINATION kompyle
-)
+#
+# # https://nanobind.readthedocs.io/en/latest/typing.html#cmake-interface
+# nanobind_add_stub(
+#   pkompyle_stub
+#   MODULE pkompyle
+#   OUTPUT pkompyle.pyi
+#   PYTHON_PATH $<TARGET_FILE_DIR:pkompyle>
+#   DEPENDS pkompyle
+# )
+#
+# install(FILES
+#   "${CMAKE_CURRENT_BINARY_DIR}/pkompyle.pyi"
+#   DESTINATION kompyle
+# )
