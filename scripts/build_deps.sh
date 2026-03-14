@@ -18,13 +18,16 @@ fi
 # dependencies
 # ============================================================
 
+SUDO=""
+[[ "$(uname)" == "Darwin" ]] && SUDO="sudo"
+
 # gmp version 6.2.1
 wget -q https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
 tar xf gmp-6.3.0.tar.xz
 cd gmp-6.3.0
 ./configure --enable-cxx --enable-fat --enable-shared
 make -j$(nproc)
-make install
+$SUDO make install
 cd ..
 
 [[ "$(uname)" == "Linux" ]] && ldconfig
@@ -35,7 +38,7 @@ tar xJf mpfr-4.2.1.tar.xz
 cd mpfr-4.2.1
 ./configure --enable-cxx --enable-shared
 make -j$(nproc)
-make install
+$SUDO make install
 cd ..
 
 [[ "$(uname)" == "Linux" ]] && ldconfig
@@ -46,7 +49,7 @@ tar xzf flint-3.2.0-rc1.tar.gz
 cd flint-3.2.0-rc1
 ./configure --enable-shared
 make -j$(nproc)
-make install
+$SUDO make install
 cd ..
 
 [[ "$(uname)" == "Linux" ]] && ldconfig
@@ -58,7 +61,7 @@ sed -i 's|::template apply|::apply|' \
 cd cereal-1.3.2 && mkdir build && cd build
 cmake -DJUST_INSTALL_CEREAL=ON ..
 cmake --build . -j$(nproc)
-cmake --install .
+$SUDO cmake --install .
 cd ../..
 
 wget -q \
@@ -67,7 +70,7 @@ tar xf armadillo-14.0.2.tar.xz
 cd armadillo-14.0.2
 ./configure
 make -j$(nproc)
-make install
+$SUDO make install
 cd ..
 
 wget -q \
@@ -76,7 +79,7 @@ tar xf 2.22.2.tar.gz
 cd ensmallen-2.22.2 && mkdir build && cd build
 cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
 cmake --build . -j$(nproc)
-cmake --install .
+$SUDO cmake --install .
 cd ../..
 
 git clone --depth=1 https://github.com/meelgroup/cadical.git
@@ -103,7 +106,7 @@ cmake \
   -DSTATICCOMPILE=OFF \
   ..
 cmake --build . -j$(nproc)
-cmake --install .
+$SUDO cmake --install .
 cd ../../
 
 git clone --depth 1 https://github.com/msoos/cryptominisat.git
@@ -114,7 +117,7 @@ cmake \
   -DSTATICCOMPILE=OFF \
   ..
 cmake --build . -j$(nproc)
-cmake --install .
+$SUDO cmake --install .
 cd ../../
 
 git clone --depth 1 https://github.com/meelgroup/SBVA.git
@@ -125,7 +128,7 @@ cmake \
   -DSTATICCOMPILE=OFF \
   ..
 cmake --build . -j$(nproc)
-cmake --install .
+$SUDO cmake --install .
 cd ../../
 
 git clone --depth 1 https://github.com/mlpack/mlpack.git
@@ -136,7 +139,7 @@ cmake \
   -DBUILD_CLI_EXECUTABLES=OFF \
   ..
 cmake --build . -j$(nproc)
-cmake --install .
+$SUDO cmake --install .
 cd ../../
 
 git clone --depth 1 https://github.com/meelgroup/arjun.git
@@ -147,7 +150,7 @@ cmake \
   -DSTATICCOMPILE=OFF \
   ..
 cmake --build . -j$(nproc)
-cmake --install .
+$SUDO cmake --install .
 cd ../../
 
 git clone --depth 1 https://github.com/meelgroup/approxmc.git
@@ -158,7 +161,7 @@ cmake \
   -DSTATICCOMPILE=OFF \
   ..
 cmake --build . -j$(nproc)
-cmake --install .
+$SUDO cmake --install .
 cd ../../
 
 git clone --depth 1 https://github.com/IbrahimElk/ganak.git
@@ -169,7 +172,7 @@ cmake \
   -DSTATICCOMPILE=OFF \
   ..
 cmake --build . -j$(nproc)
-cmake --install .
+$SUDO cmake --install .
 cd ../../
 
 # # ============================================================
