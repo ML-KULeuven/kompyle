@@ -58,6 +58,8 @@ target_link_libraries(kompyle
         sbva
         breakid
         approxmc
+        ${CADICAL_LIB}
+        ${CADIBACK_LIB}
 )
 
 # NOTE(Ibrahim):
@@ -68,7 +70,7 @@ foreach(lib cryptominisat5 arjun ganak sbva breakid approxmc)
     get_target_property(lib_loc ${lib} LOCATION)
     install(FILES ${lib_loc} DESTINATION ${SKBUILD_PLATLIB_DIR}/kompyle)
 endforeach()
-install(FILES ${CADICAL_LIB} ${CADIBACK_LIB} DESTINATION kompyle)
+# install(FILES ${CADICAL_LIB} ${CADIBACK_LIB} DESTINATION kompyle)
 
 
 set(RPATH_ORIGIN "$ORIGIN")
