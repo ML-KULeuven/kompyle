@@ -31,8 +31,8 @@ jobs:
             -w {dest_dir} {wheel}
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
             delocate-wheel --require-archs arm64
-            --exclude libklay.dylib
             -w {dest_dir} {wheel}
+            # --exclude libklay.dylib
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: "cd {project} && pytest {project}/tests"
           CIBW_SKIP: cp38-* cp39-* cp313-* pp* *i686 *ppc64le *s390x *win32* *musllinux*
