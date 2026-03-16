@@ -11,7 +11,7 @@ if [[ "$(uname)" == "Linux" ]]; then
   dnf install -y help2man wget
 else
   brew install wget
-  brew uninstall flint mpfr gmp --ignore-dependencies
+  brew uninstall mpfr gmp --ignore-dependencies
 fi
 
 if [[ "$(uname)" == "Linux" ]]; then
