@@ -79,7 +79,7 @@ if(APPLE)
 endif()
 
 set_target_properties(kompyle PROPERTIES
-    INSTALL_RPATH "${RPATH_ORIGIN}:${RPATH_ORIGIN}/../klay"
+    INSTALL_RPATH "${RPATH_ORIGIN}:${RPATH_ORIGIN}/../klay:/usr/local/lib"
 )
 
 # NOTE(Ibrahim):
@@ -105,7 +105,7 @@ target_link_libraries(pkompyle PRIVATE kompyle klay)
 # NOTE(Ibrahim):
 # sketchy, but if installed system wide, this wouldn't be necssary...
 set_target_properties(pkompyle PROPERTIES
-    INSTALL_RPATH "${RPATH_ORIGIN}:${RPATH_ORIGIN}/../klay"
+    INSTALL_RPATH "${RPATH_ORIGIN}:${RPATH_ORIGIN}/../klay:/usr/local/lib"
 )
 
 # NOTE(Ibrahim):

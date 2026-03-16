@@ -30,7 +30,6 @@ jobs:
             --exclude libklay.so
             -w {dest_dir} {wheel}
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-            DYLD_LIBRARY_PATH=/usr/local/lib
             delocate-wheel --require-archs arm64
             --exclude libklay.dylib
             -w {dest_dir} {wheel}
