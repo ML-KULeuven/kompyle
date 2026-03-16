@@ -102,6 +102,9 @@ cd cadical
 CXXFLAGS=-fPIC ./configure --competition
 make -j$(nproc)
 $SUDO cp build/libcadical.* /usr/local/lib/
+if [[ "$(uname)" == "Darwin" ]]; then
+  $SUDO mv /usr/local/lib/libcadical.so /usr/local/lib/libcadical.dylib
+fi
 cd ..
 
 git clone --depth=1 https://github.com/meelgroup/cadiback.git
@@ -109,6 +112,9 @@ cd cadiback
 CXX=c++ ./configure 
 make -j$(nproc)
 $SUDO cp libcadiback.* /usr/local/lib/
+if [[ "$(uname)" == "Darwin" ]]; then
+  $SUDO mv /usr/local/lib/libcadiback.so /usr/local/lib/libcadiback.dylib
+fi
 cd ..
 
 [[ "$(uname)" == "Linux" ]] && ldconfig
