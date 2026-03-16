@@ -1,7 +1,8 @@
 name: build
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ "main" ]
 
 jobs:
   build_wheels:
@@ -48,3 +49,26 @@ jobs:
         with:
           name: dist-source
           path: dist/*.tar.gz
+
+  upload_wheels:
+    name: Upload wheels to PyPI
+    runs-on: ubuntu-latest
+    needs: [build_wheels, build_sdist]
+    environment:
+      name: pypi
+      url: https://pypi.org/p/kompyle
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          skip-existing: true
