@@ -78,16 +78,8 @@ if(APPLE)
   set(RPATH_ORIGIN "@loader_path")
 endif()
 
-execute_process(
-  COMMAND ${Python_EXECUTABLE} -c
-    "import klay, os; print(os.path.dirname(klay.__file__))"
-  OUTPUT_VARIABLE KLAY_BUILD_LIBDIR
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-  ERROR_QUIET
-)
-
 set_target_properties(kompyle PROPERTIES
-    INSTALL_RPATH "${RPATH_ORIGIN}:${RPATH_ORIGIN}/../klay:${KLAY_BUILD_LIBDIR}"
+    INSTALL_RPATH "${RPATH_ORIGIN}:${RPATH_ORIGIN}/../klay"
 )
 
 # NOTE(Ibrahim):
@@ -113,7 +105,7 @@ target_link_libraries(pkompyle PRIVATE kompyle klay)
 # NOTE(Ibrahim):
 # sketchy, but if installed system wide, this wouldn't be necssary...
 set_target_properties(pkompyle PROPERTIES
-    INSTALL_RPATH "${RPATH_ORIGIN}:${RPATH_ORIGIN}/../klay:${KLAY_BUILD_LIBDIR}"
+    INSTALL_RPATH "${RPATH_ORIGIN}:${RPATH_ORIGIN}/../klay"
 )
 
 # NOTE(Ibrahim):
