@@ -11,6 +11,7 @@ if [[ "$(uname)" == "Linux" ]]; then
   dnf install -y help2man wget
 else
   brew install wget
+  brew uninstall flint mpfr gmp --ignore-dependencies
 fi
 
 if [[ "$(uname)" == "Linux" ]]; then
@@ -26,39 +27,36 @@ BUILD_TYPE="Release"
 SUDO=""
 [[ "$(uname)" == "Darwin" ]] && SUDO="sudo"
 
+# gmp version 6.2.1
+wget -q https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
+tar xf gmp-6.3.0.tar.xz
+cd gmp-6.3.0
+./configure --enable-cxx --enable-shared
+make -j$NPROC
+$SUDO make install
+cd ..
 
-if [[ "$(uname)" == "Linux" ]]; then
-  # gmp version 6.2.1
-  wget -q https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
-  tar xf gmp-6.3.0.tar.xz
-  cd gmp-6.3.0
-  ./configure --enable-cxx --enable-shared
-  make -j$NPROC
-  $SUDO make install
-  cd ..
+[[ "$(uname)" == "Linux" ]] && ldconfig
 
-  [[ "$(uname)" == "Linux" ]] && ldconfig
+# mpfr version 4.2.1
+wget -q https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.1.tar.xz
+tar xJf mpfr-4.2.1.tar.xz
+cd mpfr-4.2.1
+./configure --enable-cxx --enable-shared
+make -j$NPROC
+$SUDO make install
+cd ..
 
-  # mpfr version 4.2.1
-  wget -q https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.1.tar.xz
-  tar xJf mpfr-4.2.1.tar.xz
-  cd mpfr-4.2.1
-  ./configure --enable-cxx --enable-shared
-  make -j$NPROC
-  $SUDO make install
-  cd ..
+[[ "$(uname)" == "Linux" ]] && ldconfig
 
-  [[ "$(uname)" == "Linux" ]] && ldconfig
-
-  wget -q \
-    https://github.com/flintlib/flint/releases/download/v3.2.0-rc1/flint-3.2.0-rc1.tar.gz
-  tar xzf flint-3.2.0-rc1.tar.gz
-  cd flint-3.2.0-rc1
-  ./configure --enable-shared
-  make -j$NPROC
-  $SUDO make install
-  cd ..
-fi
+wget -q \
+  https://github.com/flintlib/flint/releases/download/v3.2.0-rc1/flint-3.2.0-rc1.tar.gz
+tar xzf flint-3.2.0-rc1.tar.gz
+cd flint-3.2.0-rc1
+./configure --enable-shared
+make -j$NPROC
+$SUDO make install
+cd ..
 
 [[ "$(uname)" == "Linux" ]] && ldconfig
 
