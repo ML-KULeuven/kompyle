@@ -17,6 +17,7 @@ fi
 # ============================================================
 # dependencies
 # ============================================================
+BUILD_TYPE="Release"
 
 SUDO=""
 [[ "$(uname)" == "Darwin" ]] && SUDO="sudo"
@@ -25,10 +26,19 @@ SUDO=""
 wget -q https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
 tar xf gmp-6.3.0.tar.xz
 cd gmp-6.3.0
-./configure --enable-cxx --enable-fat --enable-shared
+./configure --enable-cxx --enable-shared
 make -j$(nproc)
 $SUDO make install
 cd ..
+
+# macos
+# wget https://zlib.net/fossils/zlib-1.3.1.tar.gz
+# tar xzvf zlib-1.3.1.tar.gz
+# cd zlib-1.3.1
+# ./configure --static
+# make -j8
+# sudo make install
+# cd ..
 
 [[ "$(uname)" == "Linux" ]] && ldconfig
 
@@ -56,12 +66,17 @@ cd ..
 
 wget -q https://github.com/USCiLab/cereal/archive/v1.3.2.tar.gz
 tar xf v1.3.2.tar.gz
-sed -i 's|::template apply|::apply|' \
-  cereal-1.3.2/include/cereal/types/tuple.hpp
+if sed --version >/dev/null 2>&1; then
+    # GNU sed (Linux)
+    sed -i 's|::template apply|::apply|' cereal-1.3.2/include/cereal/types/tuple.hpp
+else
+    # BSD sed (macOS)
+    sed -i '' 's|::template apply|::apply|' cereal-1.3.2/include/cereal/types/tuple.hpp
+fi
 cd cereal-1.3.2 && mkdir build && cd build
 cmake -DJUST_INSTALL_CEREAL=ON ..
-cmake --build . -j$(nproc)
-$SUDO cmake --install .
+cmake --build .  -j$(nproc)  --config $BUILD_TYPE -v
+$SUDO cmake --install .  --config $BUILD_TYPE -v
 cd ../..
 
 wget -q \
@@ -78,22 +93,22 @@ wget -q \
 tar xf 2.22.2.tar.gz
 cd ensmallen-2.22.2 && mkdir build && cd build
 cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
-cmake --build . -j$(nproc)
-$SUDO cmake --install .
+cmake --build . -j$(nproc) --config $BUILD_TYPE -v
+$SUDO cmake --install .  --config $BUILD_TYPE -v
 cd ../..
 
 git clone --depth=1 https://github.com/meelgroup/cadical.git
 cd cadical
 CXXFLAGS=-fPIC ./configure --competition
 make -j$(nproc)
-cp build/libcadical.* /usr/local/lib/
+$SUDO cp build/libcadical.* /usr/local/lib/
 cd ..
 
 git clone --depth=1 https://github.com/meelgroup/cadiback.git
 cd cadiback
 CXX=c++ ./configure 
 make -j$(nproc)
-cp libcadiback.* /usr/local/lib/
+$SUDO cp libcadiback.* /usr/local/lib/
 cd ..
 
 [[ "$(uname)" == "Linux" ]] && ldconfig
@@ -101,79 +116,93 @@ cd ..
 git clone --depth 1 https://github.com/meelgroup/breakid.git
 cd breakid && mkdir build && cd build
 cmake \
-  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DENABLE_TESTING=OFF \
   -DSTATICCOMPILE=OFF \
   ..
-cmake --build . -j$(nproc)
+cmake --build . -j$(nproc) --config $BUILD_TYPE -v
 $SUDO cmake --install .
 cd ../../
+
+[[ "$(uname)" == "Linux" ]] && ldconfig
 
 git clone --depth 1 https://github.com/msoos/cryptominisat.git
 cd cryptominisat && mkdir build && cd build
 cmake \
-  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DENABLE_TESTING=OFF \
   -DSTATICCOMPILE=OFF \
   ..
-cmake --build . -j$(nproc)
+cmake --build . -j$(nproc) --config $BUILD_TYPE -v
 $SUDO cmake --install .
 cd ../../
+
+[[ "$(uname)" == "Linux" ]] && ldconfig
 
 git clone --depth 1 https://github.com/meelgroup/SBVA.git
 cd SBVA && mkdir build && cd build
 cmake \
-  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DENABLE_TESTING=OFF \
   -DSTATICCOMPILE=OFF \
   ..
-cmake --build . -j$(nproc)
+cmake --build . -j$(nproc) --config $BUILD_TYPE -v
 $SUDO cmake --install .
 cd ../../
+
+[[ "$(uname)" == "Linux" ]] && ldconfig
 
 git clone --depth 1 https://github.com/mlpack/mlpack.git
 cd mlpack && mkdir build && cd build
 cmake \
-  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DBUILD_SHARED_LIBS=ON \
   -DBUILD_CLI_EXECUTABLES=OFF \
   ..
-cmake --build . -j$(nproc)
-$SUDO cmake --install .
+cmake --build . -j$(nproc) --config $BUILD_TYPE -v
+$SUDO cmake --install .  --config $BUILD_TYPE -v
 cd ../../
+
+[[ "$(uname)" == "Linux" ]] && ldconfig
 
 git clone --depth 1 https://github.com/meelgroup/arjun.git
 cd arjun && mkdir build && cd build
 cmake \
-  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DENABLE_TESTING=OFF \
   -DSTATICCOMPILE=OFF \
   ..
-cmake --build . -j$(nproc)
-$SUDO cmake --install .
+cmake --build . -j$(nproc)  --config $BUILD_TYPE -v
+$SUDO cmake --install .  --config $BUILD_TYPE -v
 cd ../../
+
+[[ "$(uname)" == "Linux" ]] && ldconfig
 
 git clone --depth 1 https://github.com/meelgroup/approxmc.git
 cd approxmc && mkdir build && cd build
 cmake \
-  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DENABLE_TESTING=OFF \
   -DSTATICCOMPILE=OFF \
   ..
-cmake --build . -j$(nproc)
-$SUDO cmake --install .
+cmake --build . -j$(nproc)  --config $BUILD_TYPE -v
+$SUDO cmake --install .  --config $BUILD_TYPE -v
 cd ../../
+
+[[ "$(uname)" == "Linux" ]] && ldconfig
 
 git clone --depth 1 https://github.com/IbrahimElk/ganak.git
 cd ganak && mkdir build && cd build
 cmake \
-  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DENABLE_TESTING=OFF \
   -DSTATICCOMPILE=OFF \
   ..
-cmake --build . -j$(nproc)
-$SUDO cmake --install .
+cmake --build . -j$(nproc)  --config $BUILD_TYPE -v
+$SUDO cmake --install .  --config $BUILD_TYPE -v
 cd ../../
+
+[[ "$(uname)" == "Linux" ]] && ldconfig
 
 # # ============================================================
 # # klay
