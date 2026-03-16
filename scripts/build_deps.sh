@@ -203,6 +203,7 @@ $SUDO cmake --install .  --config $BUILD_TYPE -v
 cd ../../
 
 [[ "$(uname)" == "Linux" ]] && ldconfig
+exit 0
 
 # # ============================================================
 # # klay
