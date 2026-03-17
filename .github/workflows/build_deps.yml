@@ -2,8 +2,8 @@ name: Build deps image
 
 on:
   push:
-    # paths:
-    #   - "scripts/build_deps.sh"
+    paths:
+      - "scripts/build_deps.sh"
   workflow_dispatch:
 
 jobs:
