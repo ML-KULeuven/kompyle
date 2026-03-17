@@ -11,8 +11,25 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-latest, macos-latest]
+    permissions:
+          packages: read
     steps:
       - uses: actions/checkout@v4
+
+      - name: Cache macos dependencies
+        if: runner.os == 'macOS'
+        id: cache-macos-deps
+        uses: actions/cache@v4
+        with:
+          path: /usr/local
+          key: macos-deps-${{ hashFiles('scripts/build_deps.sh') }}
+      - name: Log in to GHCR
+        if: runner.os == 'Linux'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.4.0
