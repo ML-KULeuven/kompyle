@@ -42,7 +42,6 @@ jobs:
       #   id: validate-cache
       #   run: bash scripts/validate_deps.sh
       #   continue-on-error: true
-      #
       # - name: Install macos dependencies
       #   if: |
       #     runner.os == 'macOS' && (
@@ -50,6 +49,9 @@ jobs:
       #       steps.validate-cache.outcome == 'failure'
       #     )
       #   run: bash scripts/build_deps.sh
+      - name: Install macos dependencies
+        if: runner.os == 'macOS' && steps.cache-macos-deps.outputs.cache-hit != 'true'
+        run: bash scripts/build_deps.sh
 
       - name: Log in to GHCR
         if: runner.os == 'Linux'
