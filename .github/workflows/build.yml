@@ -12,7 +12,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     permissions:
-          packages: read
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@v4
 
