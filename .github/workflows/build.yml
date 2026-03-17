@@ -16,6 +16,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # see pyproject.toml
+      - name: Set macos deployment target
+        if: runner.os == 'macOS'
+        run: echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
+
+      # https://github.com/orgs/community/discussions/27086
+      - name: Set lowercase repository
+        if: runner.os == 'Linux'
+        run: echo "REPO_LC=${REPO,,}" >> $GITHUB_ENV
+        env:
+          REPO: ${{ github.repository }}
+
       - name: Cache macos dependencies
         if: runner.os == 'macOS'
         id: cache-macos-deps
@@ -23,6 +35,21 @@ jobs:
         with:
           path: /usr/local
           key: macos-deps-${{ hashFiles('scripts/build_deps.sh') }}
+
+      # - name: Validate cached macos dependencies
+      #   if: runner.os == 'macOS' && steps.cache-macos-deps.outputs.cache-hit == 'true'
+      #   id: validate-cache
+      #   run: bash scripts/validate_deps.sh
+      #   continue-on-error: true
+      #
+      # - name: Install macos dependencies
+      #   if: |
+      #     runner.os == 'macOS' && (
+      #       steps.cache-macos-deps.outputs.cache-hit != 'true' ||
+      #       steps.validate-cache.outcome == 'failure'
+      #     )
+      #   run: bash scripts/build_deps.sh
+
       - name: Log in to GHCR
         if: runner.os == 'Linux'
         uses: docker/login-action@v3
@@ -36,8 +63,8 @@ jobs:
         env:
           CIBW_BUILD: "cp312-*"
           CIBW_SKIP: "*i686 *ppc64le *s390x *win32* *musllinux*"
-
-          CIBW_BEFORE_ALL: "bash {project}/scripts/build_deps.sh"
+          CIBW_MANYLINUX_X86_64_IMAGE: >-
+            ghcr.io/${{ env.REPO_LC }}/manylinux-deps:latest
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: "cd {project} && pytest {project}/tests"
 
