@@ -2,8 +2,8 @@ name: Build deps image
 
 on:
   push:
-    paths:
-      - "scripts/build_deps.sh"
+    # paths:
+    #   - "scripts/build_deps.sh"
   workflow_dispatch:
 
 jobs:
@@ -35,3 +35,4 @@ jobs:
           file: docker/deps.dockerfile
           push: true
           tags: ghcr.io/${{ env.REPO_LC }}/manylinux-deps:latest
+
