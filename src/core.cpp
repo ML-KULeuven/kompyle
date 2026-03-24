@@ -16,12 +16,6 @@ cms_to_ganak_cl(const vector<CMSat::Lit>& cl) {
 }
 
 NodePtr
-compile_from_ganak(const std::string& cnf_file) {
-  auto circ = std::make_unique<Circuit>();
-  return compile_from_ganak(circ.get(), cnf_file);
-}
-
-NodePtr
 compile_from_ganak(
     Circuit* circ,
     const std::string& cnf_file) {

@@ -13,15 +13,6 @@ using namespace nb::literals;
 
 NB_MODULE(pkompyle, m) {
   m.def("compile_from_ganak",
-      [](const std::string& cnf_file) -> NodePtr {
-        return compile_from_ganak(cnf_file);
-      },
-      "cnf_file"_a,
-      "Compile a CNF file into a klay Circuit using Ganak."
-      //, nb::rv_policy::take_ownership
-  );
-
-  m.def("compile_from_ganak",
       [](Circuit* circuit, const std::string& cnf_file) -> NodePtr {
         return compile_from_ganak(circuit, cnf_file);
       },
