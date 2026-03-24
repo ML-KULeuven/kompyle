@@ -89,25 +89,25 @@ def pair_random(request):
     # NOTE(Ibrahim):
     # clause-to-variable ratio = 3
 
-    # (5, 15, 0),
-    # (5, 15, 1),
-    # (6, 18, 0),
-    # (7, 21, 0),
-    # (8, 24, 0),
-    # (9, 27, 0),
-    # (10, 30, 0),
-    # (11, 33, 0),
-    # (12, 36, 0),
-    # (20, 60, 0),
+    (5, 15, 0),
+    (5, 15, 1),
+    (6, 18, 0),
+    (7, 21, 0),
+    (8, 24, 0),
+    (9, 27, 0),
+    (10, 30, 0),
+    (11, 33, 0),
+    (12, 36, 0),
+    (20, 60, 0),
 
-    # NOTE(Ibrahim):
-    # small debug examples
+    # # NOTE(Ibrahim):
+    # # small debug examples
     (2, 2, 0),
-    # (2, 2, 1),
-    # (30, 26, 0),
-    # (30, 90, 0),
-    # (40, 120, 0),
-    # (50, 150, 0),
+    (2, 2, 1),
+    (30, 26, 0),
+    (30, 90, 0),
+    (40, 120, 0),
+    (50, 150, 0),
 ])
 def pair_random_structure(request):
     n, m, seed = request.param
@@ -210,4 +210,11 @@ def unsat_pair(request):
     "pair_exactly_one",
 ])
 def any_pair(request):
+    yield request.getfixturevalue(request.param)
+
+@pytest.fixture(params=[
+    "pair_toy0",
+    "pair_toy1",
+])
+def pair_any_toy(request):
     yield request.getfixturevalue(request.param)

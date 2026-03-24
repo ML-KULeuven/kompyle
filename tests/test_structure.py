@@ -29,9 +29,9 @@ class TestCircuitStructure:
         assert_decomposable_and_smooth(pair_random_structure.circuit,
                                        label=pair_random_structure.desc)
 
-    def test_toy_file(self, pair_toy0):
-        assert_decomposable_and_smooth(pair_toy0.circuit,
-                                       label=pair_toy0.desc)
+    def test_toy_file(self, pair_any_toy):
+        assert_decomposable_and_smooth(pair_any_toy.circuit,
+                                       label=pair_any_toy.desc)
 
     def test_unit_clause_only(self):
         pair = compile_inline(1, [[1]], "unit-clause")
