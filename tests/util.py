@@ -63,7 +63,8 @@ def compile_file(cnf_path: str,
                  tmp: bool = False) -> FormulaCircuitPair:
     n_vars, clauses = parse_cnf(cnf_path)
     circuit = klay.Circuit()
-    root = p.compile_from_ganak(circuit, cnf_path)
+    # root = p.compile_from_ganak(circuit, cnf_path)
+    root = p.compile_from_ganak_with_arjun(circuit, cnf_path)
     circuit.set_root(root)
     circuit.remove_unused_nodes()
     return FormulaCircuitPair(

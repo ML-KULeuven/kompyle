@@ -117,6 +117,13 @@ def pair_random_structure(request):
     pair.cleanup()
 
 
+@pytest.fixture
+def pair_toy():
+    path = os.path.join(toy_path, "toy.cnf")
+    if not os.path.exists(path):
+        pytest.skip(f"not found: {path}")
+    yield compile_file(str(path), "toy.cnf")
+
 
 @pytest.fixture
 def pair_toy0():
@@ -132,6 +139,14 @@ def pair_toy1():
     if not os.path.exists(path):
         pytest.skip(f"not found: {path}")
     yield compile_file(str(path), "toy1.cnf")
+
+
+@pytest.fixture
+def pair_toy2():
+    path = os.path.join(toy_path, "toy2.cnf")
+    if not os.path.exists(path):
+        pytest.skip(f"not found: {path}")
+    yield compile_file(str(path), "toy2.cnf")
 
 
 @pytest.fixture
@@ -215,6 +230,8 @@ def any_pair(request):
 @pytest.fixture(params=[
     "pair_toy0",
     "pair_toy1",
+    "pair_toy",
+    # "pair_toy2",
 ])
 def pair_any_toy(request):
     yield request.getfixturevalue(request.param)
