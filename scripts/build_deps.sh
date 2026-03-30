@@ -93,62 +93,9 @@ cmake --build . -j$NPROC --config $BUILD_TYPE -v
 $SUDO cmake --install .  --config $BUILD_TYPE -v
 cd ../..
 
-git clone --depth=1 https://github.com/meelgroup/cadical.git
-cd cadical
-CXXFLAGS="-fPIC" ./configure --competition
-make -j$NPROC
-$SUDO cp build/libcadical.a /usr/local/lib/
-cd ..
-
-git clone --depth=1 https://github.com/meelgroup/cadiback.git
-cd cadiback
-CXX=c++ ./configure 
-make -j$NPROC
-$SUDO cp libcadiback.a /usr/local/lib/
-cd ..
-
 [[ "$(uname)" == "Linux" ]] && ldconfig
 
-git clone --depth 1 https://github.com/meelgroup/breakid.git
-cd breakid && mkdir build && cd build
-cmake \
-  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-  -DENABLE_TESTING=OFF \
-  -DSTATICCOMPILE=OFF \
-  ..
-cmake --build . -j$NPROC --config $BUILD_TYPE -v
-$SUDO cmake --install .
-cd ../../
-
-[[ "$(uname)" == "Linux" ]] && ldconfig
-
-git clone --depth 1 https://github.com/msoos/cryptominisat.git
-cd cryptominisat && mkdir build && cd build
-cmake \
-  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-  -DENABLE_TESTING=OFF \
-  -DSTATICCOMPILE=OFF \
-  ..
-cmake --build . -j$NPROC --config $BUILD_TYPE -v
-$SUDO cmake --install .
-cd ../../
-
-[[ "$(uname)" == "Linux" ]] && ldconfig
-
-git clone --depth 1 https://github.com/meelgroup/SBVA.git
-cd SBVA && mkdir build && cd build
-cmake \
-  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-  -DENABLE_TESTING=OFF \
-  -DSTATICCOMPILE=OFF \
-  ..
-cmake --build . -j$NPROC --config $BUILD_TYPE -v
-$SUDO cmake --install .
-cd ../../
-
-[[ "$(uname)" == "Linux" ]] && ldconfig
-
-git clone --depth 1 https://github.com/mlpack/mlpack.git
+git clone --depth=1 --branch 4.7.0 https://github.com/mlpack/mlpack.git
 cd mlpack && mkdir build && cd build
 cmake \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
@@ -161,7 +108,74 @@ cd ../../
 
 [[ "$(uname)" == "Linux" ]] && ldconfig
 
-git clone --depth 1 https://github.com/meelgroup/arjun.git
+# NOTE(Ibrahim):
+# not tags yet in this repo, so specifying commit hash
+git clone \
+  --revision=729939aba815b1837b1590279e66c61ed9d3092f \
+  --depth=1 https://github.com/meelgroup/cadical.git
+cd cadical
+CXXFLAGS="-fPIC" ./configure --competition
+make -j$NPROC
+$SUDO cp build/libcadical.a /usr/local/lib/
+cd ..
+
+git clone \
+  --revision=a44d5a94c8b8c2c4c8c77116ce80d2bb3a974252 \
+  --depth=1 https://github.com/meelgroup/cadiback
+cd cadiback
+CXX=c++ ./configure 
+make -j$NPROC
+$SUDO cp libcadiback.a /usr/local/lib/
+cd ..
+
+[[ "$(uname)" == "Linux" ]] && ldconfig
+
+git clone \
+  --revision=101bc75aecbca22fc288a870c105889807384ffd \
+  --depth=1 https://github.com/meelgroup/breakid
+cd breakid && mkdir build && cd build
+cmake \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DENABLE_TESTING=OFF \
+  -DSTATICCOMPILE=OFF \
+  ..
+cmake --build . -j$NPROC --config $BUILD_TYPE -v
+$SUDO cmake --install .
+cd ../../
+
+[[ "$(uname)" == "Linux" ]] && ldconfig
+
+git clone --depth=1 https://github.com/msoos/cryptominisat.git
+cd cryptominisat && mkdir build && cd build
+cmake \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DENABLE_TESTING=OFF \
+  -DSTATICCOMPILE=OFF \
+  ..
+cmake --build . -j$NPROC --config $BUILD_TYPE -v
+$SUDO cmake --install .
+cd ../../
+
+[[ "$(uname)" == "Linux" ]] && ldconfig
+
+git clone \
+  --revision=52c1835773cb97edab25dfaa7c27d23ba1e5b71e \
+  --depth=1 https://github.com/meelgroup/SBVA
+cd SBVA && mkdir build && cd build
+cmake \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DENABLE_TESTING=OFF \
+  -DSTATICCOMPILE=OFF \
+  ..
+cmake --build . -j$NPROC --config $BUILD_TYPE -v
+$SUDO cmake --install .
+cd ../../
+
+[[ "$(uname)" == "Linux" ]] && ldconfig
+
+git clone \
+  --revision=bbdda468af0c70ab1cb442639a0800d567e0e1a2 \
+  --depth=1 https://github.com/meelgroup/arjun
 cd arjun && mkdir build && cd build
 cmake \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
@@ -174,7 +188,9 @@ cd ../../
 
 [[ "$(uname)" == "Linux" ]] && ldconfig
 
-git clone --depth 1 https://github.com/meelgroup/approxmc.git
+git clone \
+  --revision=e1cd45156639c6ca794b14050d5ca546921e7455 \
+  --depth=1 https://github.com/meelgroup/approxmc
 cd approxmc && mkdir build && cd build
 cmake \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
@@ -187,7 +203,9 @@ cd ../../
 
 [[ "$(uname)" == "Linux" ]] && ldconfig
 
-git clone --depth 1 https://github.com/IbrahimElk/ganak.git
+git clone \
+  --revision=4b6037d2efbbcbb8ae30f4b2d670bfaeff4a284d \
+  --depth=1 https://github.com/IbrahimElk/ganak
 cd ganak && mkdir build && cd build
 cmake \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
