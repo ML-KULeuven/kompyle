@@ -16,12 +16,6 @@ cms_to_ganak_cl(const vector<CMSat::Lit>& cl) {
 }
 
 NodePtr
-compile_from_ganak(const std::string& cnf_file) {
-  auto circ = std::make_unique<Circuit>();
-  return compile_from_ganak(circ.get(), cnf_file);
-}
-
-NodePtr
 compile_from_ganak(
     Circuit* circ,
     const std::string& cnf_file) {
@@ -55,9 +49,13 @@ compile_from_ganak(
   GanakInt::CounterConfiguration conf;
   conf.verb              = 0;
   conf.do_chronobt       = 0;
-  conf.do_use_sat_solver = 0;
-  conf.first_restart     = INT_MAX;
-  conf.do_buddy          = 0;
+  // conf.first_restart     = INT_MAX;
+
+  // FIXME(Ibrahim):
+  // non chronological backtracking,
+  // see www.msoos.org/wordpress/wp-content/uploads/2025/05/ganak2.pdf
+  // isn't compatible yet with circuit building i'm afraid
+  // issue:
 
   Ganak counter(conf, fg);
   counter.new_vars(cnf.nVars());

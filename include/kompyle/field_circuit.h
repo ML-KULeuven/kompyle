@@ -10,61 +10,94 @@ class FCircuit final : public CMSat::Field {
  public:
   // NOTE(Ibrahim)
   // FCircuit does not own the `circ` pointer
-  FCircuit(NodePtr node, Circuit* circ)
-    : node_(node), circ_(circ) {}
+  FCircuit(NodePtr node, Circuit* circ, double count = 1.0)
+    : node_(node), circ_(circ), count_(count) {}
 
-  NodePtr get_node() const { return node_; }
+  NodePtr get_node() const { return materialise(); }
   Circuit* get_circuit() const { return circ_; }
+  double get_count() const { return count_; }
+
+  void add_pending_lit(NodePtr lit) {
+    pending_lits_.push_back(lit);
+  }
 
   std::unique_ptr<Field> dup() const final {
-    return std::make_unique<FCircuit>(node_, circ_);
+    auto f = std::make_unique<FCircuit>(node_, circ_, count_);
+    f->pending_lits_ = pending_lits_;
+    return f;
   }
 
   std::unique_ptr<Field> add(const Field& other) final {
     const auto& o = cast(other);
-    return make(circ_->or_node({ node_, o.node_ }));
+    return std::make_unique<FCircuit>(
+        circ_->or_node({materialise(), o.materialise()}),
+        circ_, count_ + o.count_);
   }
 
   Field& operator+=(const Field& other) final {
     const auto& o = cast(other);
-    node_ = circ_->or_node({ node_, o.node_ });
+    // std::raise(SIGINT);
+    node_  = circ_->or_node({materialise(), o.materialise()});
+    pending_lits_.clear();
+    count_ += o.count_;
     return *this;
   }
 
   Field& operator*=(const Field& other) final {
     const auto& o = cast(other);
-    node_ = circ_->and_node({ node_, o.node_ });
+    // std::raise(SIGINT);
+    if (o.node_.get()->is_true() && !o.pending_lits_.empty()) {
+      for (const auto& l : o.pending_lits_)
+        pending_lits_.push_back(l);
+    } else {
+      node_ = circ_->and_node({materialise(), o.materialise()});
+      pending_lits_.clear();
+    }
+    count_ *= o.count_;
     return *this;
   }
 
-  // NOTE(Ibrahim)
-  // not needed for circuits, treat as no-op
-  Field& operator-=(const Field&) final { return *this; }
+  Field& operator-=(const Field& other) final {
+    const auto& o = cast(other);
+    count_ -= o.count_;
+    return *this;
+  }
 
-  // NOTE(Ibrahim)
-  // not needed for circuits, treat as no-op
-  Field& operator/=(const Field&) final { return *this; }
+  Field& operator/=(const Field& other) final {
+    const auto& o = cast(other);
+    if (o.count_ == 0.0) throw std::runtime_error("FCircuit /= division by zero");
+
+    // std::raise(SIGINT);
+    assert((o.node_.get()->is_true() && o.pending_lits_.size() == 1));
+    const NodePtr& to_remove = o.pending_lits_[0];
+    auto it = std::find(pending_lits_.begin(), pending_lits_.end(), to_remove);
+    assert(it != pending_lits_.end());
+
+    pending_lits_.erase(it);
+    count_ /= o.count_;
+    return *this;
+  }
 
   Field& operator=(const Field& other) final {
-    node_ = cast(other).node_;
-    circ_ = cast(other).circ_;
+    const auto& o = cast(other);
+    node_ = o.node_;
+    circ_ = o.circ_;
+    count_ = o.count_;
+    pending_lits_ = o.pending_lits_;
     return *this;
   }
 
   bool operator==(const Field& other) const final {
-    return node_ == cast(other).node_;
+    return materialise() == cast(other).materialise();
   }
 
   bool is_zero() const final {
-    return node_.get() && node_.get()->is_false();
+    return node_.get()->is_false();
   }
 
   bool is_one()  const final {
-    return node_.get() && node_.get()->is_true();
+    return node_.get()->is_true() && pending_lits_.empty();
   }
-
-  void set_zero() final { node_ = circ_->false_node(); }
-  void set_one()  final { node_ = circ_->true_node();  }
 
   std::ostream& display(std::ostream& os) const final {
     if (node_.get())
@@ -74,9 +107,21 @@ class FCircuit final : public CMSat::Field {
     return os;
   }
 
+  void set_zero() final {
+    node_ = circ_->false_node();
+    pending_lits_.clear();
+    count_ = 0.0; 
+  }
+
   uint64_t bytes_used() const final {
     // NOTE(Ibrahim): Circuit size not included
     return sizeof(FCircuit);
+  }
+
+  void set_one()  final {
+    node_ = circ_->true_node();
+    pending_lits_.clear();
+    count_ = 1.0;
   }
 
   bool parse(const std::string&, const uint32_t) final {
@@ -89,12 +134,18 @@ class FCircuit final : public CMSat::Field {
     return static_cast<const FCircuit&>(f);
   }
 
-  std::unique_ptr<Field> make(NodePtr n) const {
-    return std::make_unique<FCircuit>(n, circ_);
+  NodePtr materialise() const {
+    if (pending_lits_.empty()) return node_;
+    std::vector<NodePtr> children(pending_lits_.begin(), pending_lits_.end());
+    if (!node_.get()->is_true()) children.push_back(node_);
+    if (children.size() == 1) return children[0];
+    return circ_->and_node(children);
   }
 
-  NodePtr  node_;
+  NodePtr node_;
   Circuit* circ_;
+  double count_;
+  std::vector<NodePtr> pending_lits_;
 };
 
 class FGenCircuit final : public CMSat::FieldGen {
@@ -107,26 +158,21 @@ class FGenCircuit final : public CMSat::FieldGen {
 
   std::unique_ptr<CMSat::Field> 
     lit_field(int dimacs_lit) const {
-      return std::make_unique<FCircuit>(
-          circ_->literal_node(dimacs_lit), circ_);
-  }
-
-  std::unique_ptr<CMSat::Field> 
-    free_var_field(int var) const {
-      NodePtr pos = circ_->literal_node(+var);
-      NodePtr neg = circ_->literal_node(-var);
-      return std::make_unique<FCircuit>(
-          circ_->or_node({ pos, neg }), circ_);
+      // auto f = std::make_unique<FCircuit>(
+      //          circ_->literal_node(dimacs_lit), circ_, 1.0);
+      auto f = std::make_unique<FCircuit>(circ_->true_node(), circ_, 1.0);
+      f->add_pending_lit(circ_->literal_node(dimacs_lit));
+      return f;
   }
 
   std::unique_ptr<CMSat::Field> zero() const final {
     return std::make_unique<FCircuit>(
-        circ_->false_node(), circ_);
+        circ_->false_node(), circ_, 0.0);
   }
 
   std::unique_ptr<CMSat::Field> one() const final {
     return std::make_unique<FCircuit>(
-        circ_->true_node(), circ_);
+        circ_->true_node(), circ_, 1.0);
   }
 
   // NOTE(Ibrahim):
@@ -144,11 +190,9 @@ class FGenCircuit final : public CMSat::FieldGen {
   bool larger_than(
       const CMSat::Field& a,
       const CMSat::Field& b) const final {
-    // implied ordering from pointer addresses ?
-    // const auto& ac = static_cast<const FCircuit&>(a);
-    // const auto& bc = static_cast<const FCircuit&>(b);
-    // return ac.get_node().as_int() > bc.get_node().as_int();
-    return false;
+    const auto& ac = static_cast<const FCircuit&>(a);
+    const auto& bc = static_cast<const FCircuit&>(b);
+    return ac.get_count() > bc.get_count();
   }
 
   bool weighted() const final { return true; }

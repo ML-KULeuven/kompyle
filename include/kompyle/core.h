@@ -17,9 +17,5 @@
 
 NodePtr
 compile_from_ganak(
-    const std::string& cnf_file);
-
-NodePtr
-compile_from_ganak(
     Circuit* circ,
     const std::string& cnf_file);
