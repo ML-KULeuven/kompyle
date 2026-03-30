@@ -4,10 +4,28 @@
 import kompyle as p
 import klay as k
 
+from util import write_cnf
+
 class TestAPI:
     def test_initial_nb_nodes(self):
         circuit = k.Circuit()
         assert circuit.nb_nodes() == 0
+
+    def test_compile_from_ganak_xor(self):
+        circuit = k.Circuit()
+        path = write_cnf(3, [[1, 2], [-1, -2]])
+        nptr = p.compile_from_ganak(circuit, path)
+        circuit.set_root(nptr)
+        assert circuit.nb_nodes() > 0 # and circuit.nb_nodes() == 170
+        assert circuit.nb_root_nodes() == 1
+
+    def test_compile_from_ganak_xor_with_arjun(self):
+        circuit = k.Circuit()
+        path = write_cnf(3, [[1, 2], [-1, -2]])
+        nptr = p.compile_from_ganak_with_arjun(circuit, path)
+        circuit.set_root(nptr)
+        assert circuit.nb_nodes() > 0 # and circuit.nb_nodes() == 170
+        assert circuit.nb_root_nodes() == 1
 
     def test_compile_from_ganak_toy0(self):
         circuit = k.Circuit()
@@ -21,6 +39,13 @@ class TestAPI:
         nptr = p.compile_from_ganak(circuit, "./assets/toy/toy1.cnf")
         circuit.set_root(nptr)
         assert circuit.nb_nodes() > 0 # and circuit.nb_nodes() == 94
+        assert circuit.nb_root_nodes() == 1
+
+    def test_compile_from_ganak_and_arjun_toy(self):
+        circuit = k.Circuit()
+        nptr = p.compile_from_ganak_with_arjun(circuit, "./assets/toy/toy.cnf")
+        circuit.set_root(nptr)
+        assert circuit.nb_nodes() > 0 # and circuit.nb_nodes() == 170
         assert circuit.nb_root_nodes() == 1
 
     # NOTE(Ibrahim):
