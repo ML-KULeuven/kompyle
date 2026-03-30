@@ -3,19 +3,21 @@
 
 #pragma once
 
-#include "field_circuit.h"
-
 #include <cryptominisat5/solvertypesmini.h>
 #include <cryptominisat5/dimacsparser.h>
 #include <ganak/ganak.hpp>
 #include <ganak/lit.hpp>
 #include <arjun/arjun.h>
 #include <klay/circuit.h>
+#include <klay/node.h>
 
-#include <memory>
-#include <vector>
+#include "field_circuit.h"
+#include "constants.h"
 
-NodePtr
-compile_from_ganak(
+Node* compile_from_ganak(
+    Circuit* circ,
+    const std::string& cnf_file);
+
+Node* compile_from_ganak_with_arjun(
     Circuit* circ,
     const std::string& cnf_file);
