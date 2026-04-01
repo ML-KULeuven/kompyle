@@ -1,42 +1,33 @@
 # Copyright (c) 2026 Ibrahim El Kaddouri
 # Licensed under apachev2
 
-from util import assert_decomposable_and_smooth, compile_inline
+from util import assert_correct_structure, compile_inline
 
 class TestCircuitStructure:
 
     def test_trivial_sat(self, pair_trivial_sat):
-        assert_decomposable_and_smooth(pair_trivial_sat.circuit,
-                                       label=pair_trivial_sat.desc)
+        assert_correct_structure(pair_trivial_sat)
 
     def test_trivial_unsat(self, pair_trivial_unsat):
-        assert_decomposable_and_smooth(pair_trivial_unsat.circuit,
-                                       label=pair_trivial_unsat.desc)
+        assert_correct_structure(pair_trivial_unsat)
 
     def test_tautology(self, pair_tautology):
-        assert_decomposable_and_smooth(pair_tautology.circuit,
-                                       label=pair_tautology.desc)
+        assert_correct_structure(pair_tautology)
 
     def test_xor(self, pair_xor):
-        assert_decomposable_and_smooth(pair_xor.circuit,
-                                       label=pair_xor.desc)
+        assert_correct_structure(pair_xor)
 
     def test_exactly_one(self, pair_exactly_one):
-        assert_decomposable_and_smooth(pair_exactly_one.circuit,
-                                       label=pair_exactly_one.desc)
+        assert_correct_structure(pair_exactly_one)
 
     def test_random_cnf(self, pair_random_structure):
-        assert_decomposable_and_smooth(pair_random_structure.circuit,
-                                       label=pair_random_structure.desc)
+        assert_correct_structure(pair_random_structure)
 
     def test_toy_file(self, pair_any_toy):
-        assert_decomposable_and_smooth(pair_any_toy.circuit,
-                                       label=pair_any_toy.desc)
+        assert_correct_structure(pair_any_toy)
 
-    def test_unit_clause_only(self):
-        pair = compile_inline(1, [[1]], "unit-clause")
-        assert_decomposable_and_smooth(pair.circuit,
-                                       label=pair.desc)
+    def test_unit_clause_only(self, pair_unit_clause_only):
+        assert_correct_structure(pair_unit_clause_only)
 
     # # def test_alarm(self, pair_alarm):
     # #     assert_decomposable_and_smooth(pair_alarm.circuit,
@@ -71,17 +62,13 @@ class TestCircuitStructure:
     # #                                    label=pair_count153.desc)
 
     def test_unit_forced(self, pair_unit_forced):
-        assert_decomposable_and_smooth(pair_unit_forced.circuit,
-                                       label=pair_unit_forced.desc)
+        assert_correct_structure(pair_unit_forced)
 
     def test_unit_forced_unsat(self, pair_unit_forced_unsat):
-        assert_decomposable_and_smooth(pair_unit_forced_unsat.circuit,
-                                       label=pair_unit_forced_unsat.desc)
+        assert_correct_structure(pair_unit_forced_unsat)
 
     def test_unit_chain(self, pair_unit_chain):
-        assert_decomposable_and_smooth(pair_unit_chain.circuit,
-                                       label=pair_unit_chain.desc)
+        assert_correct_structure(pair_unit_chain)
 
     def test_unit_cascade_large(self, pair_unit_cascade_large):
-        assert_decomposable_and_smooth(pair_unit_cascade_large.circuit,
-                                       label=pair_unit_cascade_large.desc)
+        assert_correct_structure(pair_unit_cascade_large)

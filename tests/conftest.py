@@ -4,44 +4,59 @@
 import os
 import pytest
 
-from util import compile_inline, random_clauses, compile_file
+from util import (
+    compile_inline,
+    compile_file,
+    random_clauses,
+    COMPILER_IDS, 
+    COMPILER_FUNCS,
+)
 
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 toy_path = os.path.join(base_dir, "assets", "toy")
 
+@pytest.fixture(params=zip(COMPILER_IDS, COMPILER_FUNCS), ids=COMPILER_IDS)
+def compiler(request):
+    compiler_id, compiler_fn = request.param
+    yield compiler_id, compiler_fn
 
 @pytest.fixture
-def pair_trivial_sat():
-    pair = compile_inline(2, [[1, 2]], "trivial-sat: (x1 OR x2)")
+def pair_trivial_sat(compiler):
+    cid, cfn = compiler
+    pair = compile_inline(2, [[1, 2]], "trivial-sat", cfn, cid)
     yield pair
     pair.cleanup()
 
 
 @pytest.fixture
-def pair_trivial_unsat():
-    pair = compile_inline(2, [[1], [-1]], "trivial-unsat: x1 AND -x1")
+def pair_trivial_unsat(compiler):
+    cid, cfn = compiler
+    pair = compile_inline(2, [[1], [-1]], "trivial-unsat: x1 AND -x1", cfn, cid)
     yield pair
     pair.cleanup()
 
 
 @pytest.fixture
-def pair_tautology():
-    pair = compile_inline(3, [], "tautology: no clauses, n=3")
+def pair_tautology(compiler):
+    cid, cfn = compiler
+    pair = compile_inline(3, [], "tautology: no clauses, n=3", cfn, cid)
     yield pair
     pair.cleanup()
 
 
 @pytest.fixture
-def pair_xor():
-    pair = compile_inline(3, [[1, 2], [-1, -2]], "x1 XOR x2, x3 free")
+def pair_xor(compiler):
+    cid, cfn = compiler
+    pair = compile_inline(3, [[1, 2], [-1, -2]], "x1 XOR x2, x3 free", cfn, cid)
     yield pair
     pair.cleanup()
 
 
 @pytest.fixture
-def pair_exactly_one():
+def pair_exactly_one(compiler):
+    cid, cfn = compiler
     clauses = [[1, 2, 3], [-1, -2], [-1, -3], [-2, -3]]
-    pair = compile_inline(3, clauses, "exactly one of {x1, x2, x3}")
+    pair = compile_inline(3, clauses, "exactly one of {x1, x2, x3}", cfn, cid)
     yield pair
     pair.cleanup()
 
@@ -77,10 +92,11 @@ def pair_exactly_one():
     # (2, 2, 1),
     # (30, 26, 0),
 ])
-def pair_random(request):
+def pair_random(request, compiler):
+    cid, cfn = compiler
     n, m, seed = request.param
     clauses = random_clauses(n, m, k=3, seed=seed)
-    pair = compile_inline(n, clauses, f"random-3cnf-n{n}-m{m}-s{seed}")
+    pair = compile_inline(n, clauses, f"random-3cnf-n{n}-m{m}-s{seed}", cfn, cid)
     yield pair
     pair.cleanup()
 
@@ -109,82 +125,100 @@ def pair_random(request):
     (40, 120, 0),
     (50, 150, 0),
 ])
-def pair_random_structure(request):
+def pair_random_structure(request, compiler):
+    cid, cfn = compiler
     n, m, seed = request.param
     clauses = random_clauses(n, m, k=3, seed=seed)
-    pair = compile_inline(n, clauses, f"random-3cnf-n{n}-m{m}-s{seed}")
+    pair = compile_inline(n, clauses, f"random-3cnf-n{n}-m{m}-s{seed}", cfn, cid)
     yield pair
     pair.cleanup()
 
 
 @pytest.fixture
-def pair_toy():
+def pair_toy(compiler):
+    cid, cfn = compiler
     path = os.path.join(toy_path, "toy.cnf")
     if not os.path.exists(path):
         pytest.skip(f"not found: {path}")
-    yield compile_file(str(path), "toy.cnf")
+    yield compile_file(str(path), "toy.cnf", cfn, cid)
 
 
 @pytest.fixture
-def pair_toy0():
+def pair_toy0(compiler):
+    cid, cfn = compiler
     path = os.path.join(toy_path, "toy0.cnf")
     if not os.path.exists(path):
         pytest.skip(f"not found: {path}")
-    yield compile_file(str(path), "toy0.cnf")
+    yield compile_file(str(path), "toy0.cnf", cfn, cid)
 
 
 @pytest.fixture
-def pair_toy1():
+def pair_toy1(compiler):
+    cid, cfn = compiler
     path = os.path.join(toy_path, "toy1.cnf")
     if not os.path.exists(path):
         pytest.skip(f"not found: {path}")
-    yield compile_file(str(path), "toy1.cnf")
+    yield compile_file(str(path), "toy1.cnf", cfn, cid)
 
 
 @pytest.fixture
-def pair_toy2():
+def pair_toy2(compiler):
+    cid, cfn = compiler
     path = os.path.join(toy_path, "toy2.cnf")
     if not os.path.exists(path):
         pytest.skip(f"not found: {path}")
-    yield compile_file(str(path), "toy2.cnf")
+    yield compile_file(str(path), "toy2.cnf", cfn, cid)
 
 
 @pytest.fixture
-def pair_unit_forced():
+def pair_unit_forced(compiler):
+    cid, cfn = compiler
     clauses = [
         [1],
         [-2],
         [1, 2, 3],
     ]
-    pair = compile_inline(3, clauses, "unit-forced: x1=T, x2=F, x3 free")
+    pair = compile_inline(3, clauses, "unit-forced: x1=T, x2=F, x3 free", cfn, cid)
     yield pair
     pair.cleanup()
 
 
 @pytest.fixture
-def pair_unit_forced_unsat():
+def pair_unit_forced_unsat(compiler):
+    cid, cfn = compiler
     clauses = [
         [1],
         [-1],
     ]
-    pair = compile_inline(1, clauses, "unit-forced-unsat: x1=T and x1=F")
+    pair = compile_inline(1, clauses, "unit-forced-unsat: x1=T and x1=F", cfn, cid)
+    yield pair
+    pair.cleanup()
+
+@pytest.fixture
+def pair_unit_clause_only(compiler):
+    cid, cfn = compiler
+    clauses = [[1]]
+    pair = compile_inline(1, clauses, "unit clauses", cfn, cid)
     yield pair
     pair.cleanup()
 
 
 @pytest.fixture
-def pair_unit_chain():
+def pair_unit_chain(compiler):
+    cid, cfn = compiler
     clauses = [
         [1],
         [-1, 2],
         [-2, 3],
     ]
-    pair = compile_inline(3, clauses, "unit-chain: x1 -> x2 -> x3, all forced T")
+    pair = compile_inline(3, clauses, "unit-chain: x1 -> x2 -> x3, all forced T",
+                          cfn, cid)
     yield pair
     pair.cleanup()
 
 @pytest.fixture
-def pair_unit_cascade_large():
+def pair_unit_cascade_large(compiler):
+    cid, cfn = compiler
     clauses = []
 
     clauses.append([1])
@@ -196,7 +230,7 @@ def pair_unit_cascade_large():
 
     clauses.append([16, 17, 18])
 
-    pair = compile_inline(20, clauses, "unit-cascade-large")
+    pair = compile_inline(20, clauses, "unit-cascade-large", cfn, cid)
     yield pair
     pair.cleanup()
 
@@ -206,14 +240,14 @@ def pair_unit_cascade_large():
     "pair_xor",
     "pair_exactly_one",
 ])
-def sat_pair(request):
+def sat_pair(request, compiler):
     yield request.getfixturevalue(request.param)
 
 
 @pytest.fixture(params=[
     "pair_trivial_unsat",
 ])
-def unsat_pair(request):
+def unsat_pair(request, compiler):
     yield request.getfixturevalue(request.param)
 
 
@@ -224,7 +258,7 @@ def unsat_pair(request):
     "pair_xor",
     "pair_exactly_one",
 ])
-def any_pair(request):
+def any_pair(request, compiler):
     yield request.getfixturevalue(request.param)
 
 @pytest.fixture(params=[
@@ -233,5 +267,5 @@ def any_pair(request):
     "pair_toy",
     # "pair_toy2",
 ])
-def pair_any_toy(request):
+def pair_any_toy(request, compiler):
     yield request.getfixturevalue(request.param)

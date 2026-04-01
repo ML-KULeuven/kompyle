@@ -7,11 +7,41 @@ import tempfile
 import itertools
 
 from dataclasses import dataclass
-from typing      import Dict, Generator, List, Tuple
+from typing      import Dict, Generator, List, Tuple, Callable
+from pysdd.sdd   import SddManager
 
-import klay
+import klay as k
 import torch
 import kompyle as p
+
+
+def _compile_from_cnf_using_ganak(circuit: k.Circuit, cnf_path: str) -> k.NodePtr:
+    return p.compile_from_cnf_using_ganak(circuit, cnf_path)
+
+
+def _compile_from_cnf_using_ganakarjun(circuit: k.Circuit, cnf_path: str) -> k.NodePtr:
+    return p.compile_from_cnf_using_ganakarjun(circuit, cnf_path)
+
+
+def _compile_from_cnf_using_sdd(circuit: k.Circuit, cnf_path: str) -> k.NodePtr:
+    return p.compile_from_cnf_using_sdd(circuit, cnf_path)
+
+
+# def _compile_from_sdd(circuit: k.Circuit, cnf_path: str) -> k.NodePtr:
+#     mgr, sdd_node = SddManager.from_cnf_file(cnf_path.encode(), vtree_type=b"balanced")
+#     return p.compile_from_sdd(circuit, sdd_node)
+
+
+ALL_COMPILERS: List[Tuple[str, Callable]] = [
+    # ("from_cnf_using_ganak",        _compile_from_cnf_using_ganak),
+    # ("from_cnf_using_ganak_arjun",  _compile_from_cnf_using_ganakarjun),
+    ("from_cnf_using_sdd",          _compile_from_cnf_using_sdd),
+    # ("from_sdd",                    _compile_from_sdd)
+]
+
+COMPILER_IDS   = [name for name, _ in ALL_COMPILERS]
+COMPILER_FUNCS = [fn   for _, fn  in ALL_COMPILERS]
+
 
 # ===================================================================
 # CREATE EXAMPLES
@@ -22,9 +52,10 @@ class FormulaCircuitPair:
     cnf_path: str
     n_vars: int
     clauses: List[List[int]]
-    circuit: klay.Circuit
-    root: klay.NodePtr
+    circuit: k.Circuit
+    root: k.NodePtr
     desc: str
+    compiler_id: str
     _tmp: bool = False
 
     def cleanup(self):
@@ -58,13 +89,16 @@ def parse_cnf(path: str):
     return n_vars, clauses
 
 
-def compile_file(cnf_path: str,
-                 desc: str,
-                 tmp: bool = False) -> FormulaCircuitPair:
+def compile_file(
+    cnf_path: str,
+    desc: str,
+    compiler: Callable,
+    compiler_id: str,
+    tmp: bool = False,
+) -> FormulaCircuitPair:
     n_vars, clauses = parse_cnf(cnf_path)
-    circuit = klay.Circuit()
-    # root = p.compile_from_ganak(circuit, cnf_path)
-    root = p.compile_from_ganak_with_arjun(circuit, cnf_path)
+    circuit = k.Circuit()
+    root = compiler(circuit, cnf_path)
     circuit.set_root(root)
     circuit.remove_unused_nodes()
     return FormulaCircuitPair(
@@ -73,16 +107,21 @@ def compile_file(cnf_path: str,
         clauses=clauses,
         circuit=circuit,
         root=root,
-        desc=desc,
+        desc=f"{desc}[{compiler_id}]",
+        compiler_id=compiler_id,
         _tmp=tmp,
     )
 
 
-def compile_inline(n_vars: int,
-                   clauses: List[List[int]],
-                   desc: str) -> FormulaCircuitPair:
+def compile_inline(
+    n_vars: int,
+    clauses: List[List[int]],
+    desc: str,
+    compiler: Callable,
+    compiler_id: str,
+) -> FormulaCircuitPair:
     path = write_cnf(n_vars, clauses)
-    return compile_file(path, desc, tmp=True)
+    return compile_file(path, desc, compiler, compiler_id, tmp=True)
 
 
 def random_clauses(n_vars: int,
@@ -127,7 +166,7 @@ def eval_formula(clauses: List[List[int]], alpha: Assignment) -> bool:
     return True
 
 
-def eval_circuit(circuit: klay.Circuit, n_vars: int, alpha: Assignment) -> float:
+def eval_circuit(circuit: k.Circuit, n_vars: int, alpha: Assignment) -> float:
     pos_w = torch.tensor([1.0 if alpha[v + 1] else 0.0 for v in range(n_vars)])
     m = circuit.to_torch_module(semiring="real")
 
@@ -169,20 +208,35 @@ def assert_exhaustive_equivalence(pair: FormulaCircuitPair) -> None:
 # STRUCTURE (smooth ?, decomposable ?)
 # ===================================================================
 
-def assert_decomposable_and_smooth(circuit: klay.Circuit,
-                                   label: str = "") -> klay.SDNNFResult:
-    result = klay.check_sdnnf(circuit, max_violations=10)
-    # result = klay.check_decomposability(circuit, max_violations=10)
-    # result = klay.check_smooth(circuit, max_violations=10)
-    msg_prefix = f"[{label}] " if (label and ("decomp" in label)) else ""
-
+def assert_decomposable(pair: FormulaCircuitPair) -> k.SDNNFResult:
+    result = k.check_decomposability(pair.circuit, max_violations=10)
     assert result.is_decomposable, (
-        f"{msg_prefix} circuit is not decomposable.\n{result.summary()}"
-    )
-    assert result.is_smooth, (
-        f"{msg_prefix} circuit is not smooth.\n{result.summary()}"
+        f"[{pair.desc}] circuit is not decomposable.\n{result.summary()}"
     )
     assert len(result.violations) == 0, (
-        f"{msg_prefix} unexpected violations:\n{result.summary()}"
+        f"[{pair.desc}] unexpected violations:\n{result.summary()}"
     )
-    return result
+
+def assert_smooth(pair: FormulaCircuitPair) -> k.SDNNFResult:
+    result = k.check_smooth(pair.circuit, max_violations=10)
+    assert result.is_smooth, (
+        f"[{pair.desc}] circuit is not smooth.\n{result.summary()}"
+    )
+    assert len(result.violations) == 0, (
+        f"[{pair.desc}] unexpected violations:\n{result.summary()}"
+    )
+
+def assert_correct_structure(pair: FormulaCircuitPair) -> k.SDNNFResult:
+    # result = k.check_sdnnf(circuit, max_violations=10)
+    if "ganak" in pair.compiler_id:
+        assert_decomposable(pair)
+        assert_smooth(pair)
+        # check determinisstic
+        return
+
+    if "sdd" in pair.compiler_id:
+        assert_decomposable(pair)
+        # check determinisstic
+        return
+
+    raise ValueError("Unknown compiler id given")
