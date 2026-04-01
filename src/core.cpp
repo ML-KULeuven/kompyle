@@ -83,7 +83,7 @@ void
 run_arjun(ArjunNS::SimplifiedCNF& cnf,
           ArjunOptions& ao) {
   ArjunNS::Arjun arjun;
-  // arjun.set_verb(ao.arjun_verb);
+  arjun.set_verb(ao.arjun_verb);
   // arjun.set_or_gate_based(ao.arjun_gates);
   // arjun.set_xor_gates_based(ao.arjun_gates);
   // arjun.set_ite_gate_based(ao.arjun_gates);
