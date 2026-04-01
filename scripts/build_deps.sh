@@ -1,5 +1,5 @@
 #!/bin/bash
-set -xe
+set -euo pipefail
 
 # ============================================================
 # system-packages
@@ -214,6 +214,17 @@ cmake \
   ..
 cmake --build . -j$NPROC  --config $BUILD_TYPE -v
 $SUDO cmake --install .  --config $BUILD_TYPE -v
+cd ../../
+
+[[ "$(uname)" == "Linux" ]] && ldconfig
+
+git clone --depth=1 https://github.com/IbrahimElk/sdd
+cd sdd && mkdir build && cd build
+cmake \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  ..
+cmake --build . -j$NPROC  -v
+$SUDO cmake --install .  -v
 cd ../../
 
 [[ "$(uname)" == "Linux" ]] && ldconfig

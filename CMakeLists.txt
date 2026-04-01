@@ -3,6 +3,7 @@ project(kompyle LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # -----------------------------------------------
 # DEPENDENCIES 
 # -----------------------------------------------
@@ -11,46 +12,26 @@ find_package(Python 3.10
         REQUIRED COMPONENTS Interpreter Development.Module
         OPTIONAL_COMPONENTS Development.SABIModule)
 
-find_package(nanobind CONFIG REQUIRED)
+find_package(nanobind       CONFIG REQUIRED)
 
-find_package(cryptominisat5 CONFIG REQUIRED)
-find_package(arjun          CONFIG REQUIRED)
-find_package(ganak          CONFIG REQUIRED)
+find_package(cryptominisat5 MODULE REQUIRED)
+find_package(arjun          MODULE REQUIRED)
+find_package(ganak          MODULE REQUIRED)
 find_package(sbva           CONFIG REQUIRED)
 find_package(breakid        CONFIG REQUIRED)
 find_package(approxmc       CONFIG REQUIRED)
 find_package(klay           CONFIG REQUIRED)
+find_package(sdd            CONFIG REQUIRED)
 
-find_library(CADICAL_LIB
-  PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../cadical/build/
-  NAMES cadical
-  REQUIRED)
+find_package(cadical        MODULE REQUIRED)
+find_package(cadiback       MODULE REQUIRED)
 
-find_library(CADIBACK_LIB
-  PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../cadiback/
-  NAMES cadiback
-  REQUIRED)
 
 # -----------------------------------------------
 # LIBRARY KOMPYLE
 # -----------------------------------------------
 
-add_library(kompyle SHARED
-  src/core.cpp
-)
-
-target_include_directories(kompyle
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-        ${CRYPTOMINISAT5_INCLUDE_DIRS}
-        ${KLAY_INCLUDE_DIRS}
-        ${GANAK_INCLUDE_DIRS}
-        ${ARJUN_INCLUDE_DIRS}
-)
-
-target_link_libraries(kompyle
-    PUBLIC
+set(dependencies
         klay
         cryptominisat5
         arjun
@@ -58,8 +39,25 @@ target_link_libraries(kompyle
         sbva
         breakid
         approxmc
-        ${CADICAL_LIB}
-        ${CADIBACK_LIB}
+        sdd::sdd
+        sdd::sdd_compiler
+        cadical::cadical
+        cadiback::cadiback
+)
+
+add_library(kompyle SHARED
+  src/core.cpp
+  src/sdd.cpp
+)
+
+target_include_directories(kompyle
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+
+
+target_link_libraries(kompyle PUBLIC ${dependencies}
 )
 
 # NOTE(Ibrahim):
@@ -67,14 +65,10 @@ target_link_libraries(kompyle
 # as you can see, we bundle klay together as well, duplicate because 
 # we also install a python package klay. It is easier than to link
 # because of macos... and python packages needing to be self-contained
-foreach(lib cryptominisat5 arjun ganak sbva breakid approxmc klay)
+foreach(lib ${dependencies})
     get_target_property(lib_loc ${lib} LOCATION)
     install(FILES ${lib_loc} DESTINATION ${SKBUILD_PLATLIB_DIR}/kompyle)
 endforeach()
-
-# FIXME(Ibrahim): cadical and cadiback must be statically linked 
-# macos issue... it doesn't provide a dylib which was needed with cibuildwheel
-# install(FILES ${CADICAL_LIB} ${CADIBACK_LIB} DESTINATION kompyle)
 
 set(RPATH_ORIGIN "$ORIGIN")
 if(APPLE)
