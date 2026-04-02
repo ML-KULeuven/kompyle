@@ -8,7 +8,7 @@ import itertools
 
 from dataclasses import dataclass
 from typing      import Dict, Generator, List, Tuple, Callable
-from pysdd.sdd   import SddManager
+from pysdd.sdd   import SddManager, CompilerOptions
 
 import klay as k
 import torch
@@ -27,16 +27,16 @@ def _compile_from_cnf_using_sdd(circuit: k.Circuit, cnf_path: str) -> k.NodePtr:
     return p.compile_from_cnf_using_sdd(circuit, cnf_path)
 
 
-# def _compile_from_sdd(circuit: k.Circuit, cnf_path: str) -> k.NodePtr:
-#     mgr, sdd_node = SddManager.from_cnf_file(cnf_path.encode(), vtree_type=b"balanced")
-#     return p.compile_from_sdd(circuit, sdd_node)
+def _compile_from_sdd(circuit: k.Circuit, cnf_path: str) -> k.NodePtr:
+    mgr, sdd_node = SddManager.from_cnf_file(cnf_path.encode(), vtree_type=b"balanced")
+    return p.compile_from_sdd(circuit, sdd_node)
 
 
 ALL_COMPILERS: List[Tuple[str, Callable]] = [
     # ("from_cnf_using_ganak",        _compile_from_cnf_using_ganak),
     # ("from_cnf_using_ganak_arjun",  _compile_from_cnf_using_ganakarjun),
-    ("from_cnf_using_sdd",          _compile_from_cnf_using_sdd),
-    # ("from_sdd",                    _compile_from_sdd)
+    # ("from_cnf_using_sdd",          _compile_from_cnf_using_sdd),
+    ("from_sdd",                    _compile_from_sdd)
 ]
 
 COMPILER_IDS   = [name for name, _ in ALL_COMPILERS]

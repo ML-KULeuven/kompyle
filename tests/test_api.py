@@ -5,6 +5,7 @@ import kompyle as p
 import klay as k
 
 from util import write_cnf
+from pysdd.sdd   import SddManager
 
 class TestAPI:
     def test_initial_nb_nodes(self):
@@ -31,6 +32,15 @@ class TestAPI:
         circuit = k.Circuit()
         path = write_cnf(3, [[1, 2], [-1, -2]])
         nptr = p.compile_from_cnf_using_sdd(circuit, path)
+        circuit.set_root(nptr)
+        assert circuit.nb_nodes() > 0 # and circuit.nb_nodes() == 170
+        assert circuit.nb_root_nodes() == 1
+
+    def test_compile_from_sdd(self):
+        circuit = k.Circuit()
+        path = write_cnf(3, [[1, 2], [-1, -2]])
+        mgr, sdd_node = SddManager.from_cnf_file(path.encode(), vtree_type=b"balanced")
+        nptr = p.compile_from_sdd(circuit, sdd_node)
         circuit.set_root(nptr)
         assert circuit.nb_nodes() > 0 # and circuit.nb_nodes() == 170
         assert circuit.nb_root_nodes() == 1
