@@ -74,7 +74,7 @@ jobs:
           CIBW_SKIP: "*i686 *ppc64le *s390x *win32* *musllinux*"
           CIBW_MANYLINUX_X86_64_IMAGE: >-
             ghcr.io/${{ env.REPO_LC }}/manylinux-deps:latest
-          CIBW_TEST_REQUIRES: pytest torch
+          CIBW_TEST_EXTRAS: "dev"
           CIBW_TEST_COMMAND: "cd {project} && pytest {project}/tests"
 
       - uses: actions/upload-artifact@v4

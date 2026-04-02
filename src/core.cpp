@@ -4,6 +4,7 @@
 #include "kompyle/core.h"
 #include "kompyle/constants.h"
 
+
 vector<GanakInt::Lit>
 arjun_to_ganak_cl(const vector<CMSat::Lit>& cl,
              const vector<uint32_t>& var_to_ganak)
@@ -17,6 +18,7 @@ arjun_to_ganak_cl(const vector<CMSat::Lit>& cl,
   }
   return out;
 }
+
 
 void 
 read_dimacs_input_file(
@@ -42,6 +44,7 @@ read_dimacs_input_file(
   }
   std::fclose(in);
 }
+
 
 void
 confure_arjun(ArjunNS::SimplifiedCNF& cnf,
@@ -75,11 +78,12 @@ confure_arjun(ArjunNS::SimplifiedCNF& cnf,
   cnf.check_sanity();
 }
 
+
 void
 run_arjun(ArjunNS::SimplifiedCNF& cnf,
           ArjunOptions& ao) {
   ArjunNS::Arjun arjun;
-  // arjun.set_verb(ao.arjun_verb);
+  arjun.set_verb(ao.arjun_verb);
   // arjun.set_or_gate_based(ao.arjun_gates);
   // arjun.set_xor_gates_based(ao.arjun_gates);
   // arjun.set_ite_gate_based(ao.arjun_gates);
@@ -101,7 +105,6 @@ run_arjun(ArjunNS::SimplifiedCNF& cnf,
 }
 
 
-
 // NOTE(Ibrahim):
 // from ganak source code,
 // see ganak/main.cpp or ganak/example.cpp
@@ -116,7 +119,7 @@ cms_to_ganak_cl(const vector<CMSat::Lit>& cl) {
 
 
 Node*
-compile_from_ganak(
+compile_from_cnf_using_ganak(
     Circuit* circ,
     const std::string& cnf_file) {
   std::unique_ptr<CMSat::FieldGen> fg;
@@ -166,8 +169,9 @@ compile_from_ganak(
   // * make sure to use as much as possible of ganak
 }
 
+
 Node*
-compile_from_ganak_with_arjun(
+compile_from_cnf_using_ganakarjun(
     Circuit* circ,
     const std::string& cnf_file)
 {

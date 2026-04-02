@@ -5,6 +5,7 @@ import kompyle as p
 import klay as k
 
 from util import write_cnf
+from pysdd.sdd   import SddManager
 
 class TestAPI:
     def test_initial_nb_nodes(self):
@@ -14,7 +15,7 @@ class TestAPI:
     def test_compile_from_ganak_xor(self):
         circuit = k.Circuit()
         path = write_cnf(3, [[1, 2], [-1, -2]])
-        nptr = p.compile_from_ganak(circuit, path)
+        nptr = p.compile_from_cnf_using_ganak(circuit, path)
         circuit.set_root(nptr)
         assert circuit.nb_nodes() > 0 # and circuit.nb_nodes() == 170
         assert circuit.nb_root_nodes() == 1
@@ -22,28 +23,45 @@ class TestAPI:
     def test_compile_from_ganak_xor_with_arjun(self):
         circuit = k.Circuit()
         path = write_cnf(3, [[1, 2], [-1, -2]])
-        nptr = p.compile_from_ganak_with_arjun(circuit, path)
+        nptr = p.compile_from_cnf_using_ganakarjun(circuit, path)
+        circuit.set_root(nptr)
+        assert circuit.nb_nodes() > 0 # and circuit.nb_nodes() == 170
+        assert circuit.nb_root_nodes() == 1
+
+    def test_compile_from_cnf_using_sdd(self):
+        circuit = k.Circuit()
+        path = write_cnf(3, [[1, 2], [-1, -2]])
+        nptr = p.compile_from_cnf_using_sdd(circuit, path)
+        circuit.set_root(nptr)
+        assert circuit.nb_nodes() > 0 # and circuit.nb_nodes() == 170
+        assert circuit.nb_root_nodes() == 1
+
+    def test_compile_from_sdd(self):
+        circuit = k.Circuit()
+        path = write_cnf(3, [[1, 2], [-1, -2]])
+        mgr, sdd_node = SddManager.from_cnf_file(path.encode(), vtree_type=b"balanced")
+        nptr = p.compile_from_sdd(circuit, sdd_node)
         circuit.set_root(nptr)
         assert circuit.nb_nodes() > 0 # and circuit.nb_nodes() == 170
         assert circuit.nb_root_nodes() == 1
 
     def test_compile_from_ganak_toy0(self):
         circuit = k.Circuit()
-        nptr = p.compile_from_ganak(circuit, "./assets/toy/toy0.cnf")
+        nptr = p.compile_from_cnf_using_ganak(circuit, "./assets/toy/toy0.cnf")
         circuit.set_root(nptr)
         assert circuit.nb_nodes() > 0 # and circuit.nb_nodes() == 170
         assert circuit.nb_root_nodes() == 1
 
     def test_compile_from_ganak_toy1(self):
         circuit = k.Circuit()
-        nptr = p.compile_from_ganak(circuit, "./assets/toy/toy1.cnf")
+        nptr = p.compile_from_cnf_using_ganak(circuit, "./assets/toy/toy1.cnf")
         circuit.set_root(nptr)
         assert circuit.nb_nodes() > 0 # and circuit.nb_nodes() == 94
         assert circuit.nb_root_nodes() == 1
 
     def test_compile_from_ganak_and_arjun_toy(self):
         circuit = k.Circuit()
-        nptr = p.compile_from_ganak_with_arjun(circuit, "./assets/toy/toy.cnf")
+        nptr = p.compile_from_cnf_using_ganakarjun(circuit, "./assets/toy/toy.cnf")
         circuit.set_root(nptr)
         assert circuit.nb_nodes() > 0 # and circuit.nb_nodes() == 170
         assert circuit.nb_root_nodes() == 1
@@ -54,12 +72,12 @@ class TestAPI:
     def test_or_node(self):
         circuit = k.Circuit()
 
-        nptr1 = p.compile_from_ganak(circuit, "./assets/toy/toy0.cnf")
+        nptr1 = p.compile_from_cnf_using_ganak(circuit, "./assets/toy/toy0.cnf")
         circuit.set_root(nptr1)
         nbn1 = circuit.nb_nodes()
         nbrn1 = circuit.nb_root_nodes()
 
-        nptr2 = p.compile_from_ganak(circuit, "./assets/toy/toy1.cnf")
+        nptr2 = p.compile_from_cnf_using_ganak(circuit, "./assets/toy/toy1.cnf")
         circuit.set_root(nptr2)
         nbn2 = circuit.nb_nodes()
         nbrn2 = circuit.nb_root_nodes()
@@ -81,8 +99,8 @@ class TestAPI:
     def test_remove_unused_nodes(self):
         circuit = k.Circuit()
 
-        nptr1 = p.compile_from_ganak(circuit, "./assets/toy/toy0.cnf")
-        nptr2 = p.compile_from_ganak(circuit, "./assets/toy/toy1.cnf")
+        nptr1 = p.compile_from_cnf_using_ganak(circuit, "./assets/toy/toy0.cnf")
+        nptr2 = p.compile_from_cnf_using_ganak(circuit, "./assets/toy/toy1.cnf")
         circuit.or_node([nptr1, nptr2])
 
         circuit.remove_unused_nodes() # doesn't remove layer 0
@@ -91,8 +109,8 @@ class TestAPI:
     def test_set_root(self):
         circuit = k.Circuit()
 
-        nptr1 = p.compile_from_ganak(circuit, "./assets/toy/toy0.cnf")
-        nptr2 = p.compile_from_ganak(circuit, "./assets/toy/toy1.cnf")
+        nptr1 = p.compile_from_cnf_using_ganak(circuit, "./assets/toy/toy0.cnf")
+        nptr2 = p.compile_from_cnf_using_ganak(circuit, "./assets/toy/toy1.cnf")
         nptr3 = circuit.or_node([nptr1, nptr2])
         circuit.set_root(nptr3)
 
@@ -101,7 +119,7 @@ class TestAPI:
 
     def test_get_indices(self):
         circuit = k.Circuit()
-        nptr1 = p.compile_from_ganak(circuit, "./assets/toy/toy0.cnf")
+        nptr1 = p.compile_from_cnf_using_ganak(circuit, "./assets/toy/toy0.cnf")
         circuit.set_root(nptr1)
         circuit.remove_unused_nodes()
         indices = circuit._get_indices()
