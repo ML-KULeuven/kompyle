@@ -145,7 +145,9 @@ cd ../../
 
 [[ "$(uname)" == "Linux" ]] && ldconfig
 
-git clone --depth=1 https://github.com/msoos/cryptominisat.git
+git clone \
+  --revision=4c377ecab94ca9e9d3b2348204fb0ffe27fe6dec \
+  --depth=1 https://github.com/msoos/cryptominisat.git
 cd cryptominisat && mkdir build && cd build
 cmake \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
