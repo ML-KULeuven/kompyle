@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Ibrahim El Kaddouri
 // Licensed under apachev2
 
-#include <stdexcept>
 #include "kompyle/core.h"
 
 Node* sdd_to_klay(SddNode* node, Circuit& circuit,
@@ -58,7 +57,6 @@ Node* compile_from_sdd(Circuit* circ, SddNode* root) {
   assert(root != nullptr);
   std::unordered_map<SddNode*, Node*> cache;
   Node* klay_root = sdd_to_klay(root, *circ, cache);
-  circ->set_root(klay_root);
   return NodePtr(klay_root).get();
 }
 

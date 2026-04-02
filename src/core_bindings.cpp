@@ -8,6 +8,8 @@
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/pair.h>
 
+#include <Python.h>
+
 namespace nb = nanobind;
 using namespace nb::literals;
 
@@ -35,5 +37,26 @@ NB_MODULE(pkompyle, m) {
       "circuit"_a, "cnf_file"_a,
       "Compile a CNF file by transforming it into a sdd circuit and add the resulting"
       "nodes into an existing klay Circuit."
+  );
+  m.def("compile_from_sdd",
+      [](Circuit* circuit, nb::object sdd_node_obj) -> NodePtr { 
+        PyObject* capsule = nullptr; 
+        if (PyCapsule_CheckExact(sdd_node_obj.ptr())) {
+          capsule = sdd_node_obj.ptr(); 
+        } else {
+          nb::object cap = sdd_node_obj.attr("_capsule"); 
+          capsule = cap.ptr(); 
+        }
+        if (!PyCapsule_IsValid(capsule, "SddNode*")) {
+          throw std::runtime_error(
+              "Expected a PyCapsule with name 'SddNode*' "
+              "(pass a pysdd.SddNode or its ._capsule)");
+        }
+
+        SddNode* root = static_cast<SddNode*>(PyCapsule_GetPointer(capsule, "SddNode*"));
+        return compile_from_sdd(circuit, root);
+      },
+      "circuit"_a, "sdd_node"_a,
+      "Transform a SddNode into an equivalent klay Circuit."
   );
 }
