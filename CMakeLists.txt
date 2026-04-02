@@ -57,8 +57,7 @@ target_include_directories(kompyle
 )
 
 
-target_link_libraries(kompyle PUBLIC ${dependencies}
-)
+target_link_libraries(kompyle PUBLIC ${dependencies})
 
 # NOTE(Ibrahim):
 # * all these shared libs are packed together in kompyle site-package
