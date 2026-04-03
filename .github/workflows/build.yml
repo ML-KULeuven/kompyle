@@ -3,14 +3,87 @@ name: build
 on:
   pull_request:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Build deps image"]
-    types: [completed]
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      deps: ${{ steps.filter.outputs.deps }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            deps:
+              - 'scripts/deps/**'
+
+  build_deps:
+    needs: changes
+    if: needs.changes.outputs.deps == 'true' || github.event_name == 'workflow_dispatch'
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: macos-latest
+            platform: macos
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # see pyproject.toml
+      - name: Set macos deployment target
+        if: runner.os == 'macOS'
+        run: echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
+
+      - name: Set lowercase repository
+        if: matrix.platform == 'linux'
+        run: echo "REPO_LC=${REPO,,}" >> $GITHUB_ENV
+        env:
+          REPO: ${{ github.repository }}
+
+      - name: Log in to GHCR
+        if: matrix.platform == 'linux'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push docker image
+        if: matrix.platform == 'linux'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/deps.dockerfile
+          push: true
+          tags: ghcr.io/${{ env.REPO_LC }}/manylinux-deps:latest
+
+      - name: Build macos dependencies
+        if: matrix.platform == 'macos'
+        run: bash scripts/build_deps.sh
+
+      - name: Save macos dependencies to cache
+        if: matrix.platform == 'macos'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            /usr/local/lib
+            /usr/local/include
+            /usr/local/bin
+          key: macos-deps-${{ hashFiles('scripts/deps/**') }}
+
+
   build_wheels:
-    # https://github.com/orgs/community/discussions/26238
-    if: ${{ github.event.workflow_run.conclusion != 'failure' }}
+    needs: build_deps
+    if: |
+      always() &&
+      (needs.build_deps.result == 'success' ||
+       needs.build_deps.result == 'skipped')
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -35,29 +108,21 @@ jobs:
         env:
           REPO: ${{ github.repository }}
 
-      - name: Cache macos dependencies
+      - name: Prepare macos dependency paths
         if: runner.os == 'macOS'
-        id: cache-macos-deps
-        uses: actions/cache@v4
-        with:
-          path: /usr/local
-          key: macos-deps-${{ hashFiles('scripts/build_deps.sh') }}
+        run: |
+          sudo mkdir -p /usr/local/lib /usr/local/include /usr/local/bin
+          sudo chown -R $USER /usr/local/lib /usr/local/include /usr/local/bin
 
-      # - name: Validate cached macos dependencies
-      #   if: runner.os == 'macOS' && steps.cache-macos-deps.outputs.cache-hit == 'true'
-      #   id: validate-cache
-      #   run: bash scripts/validate_deps.sh
-      #   continue-on-error: true
-      # - name: Install macos dependencies
-      #   if: |
-      #     runner.os == 'macOS' && (
-      #       steps.cache-macos-deps.outputs.cache-hit != 'true' ||
-      #       steps.validate-cache.outcome == 'failure'
-      #     )
-      #   run: bash scripts/build_deps.sh
-      - name: Install macos dependencies
-        if: runner.os == 'macOS' && steps.cache-macos-deps.outputs.cache-hit != 'true'
-        run: bash scripts/build_deps.sh
+      - name: Restore macos dependencies
+        if: runner.os == 'macOS'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            /usr/local/lib
+            /usr/local/include
+            /usr/local/bin
+          key: macos-deps-${{ hashFiles('scripts/deps/**') }}
 
       - name: Log in to GHCR
         if: runner.os == 'Linux'
@@ -83,7 +148,11 @@ jobs:
           path: ./wheelhouse/*.whl
 
   build_sdist:
-    if: ${{ github.event.workflow_run.conclusion != 'failure' }}
+    needs: build_deps
+    if: |
+      always() &&
+      (needs.build_deps.result == 'success' ||
+       needs.build_deps.result == 'skipped')
     name: Prepare source distribution
     runs-on: ubuntu-latest
     steps:
