@@ -29,7 +29,8 @@ dev = ["nanobind >=1.3.2",
        "pytest-xdist",
        "pysdd @ git+https://github.com/IbrahimElk/pysdd.git@feat/add-capsule-to-sddnode",
        "torch",
-       "jax"
+       "pyright",
+       "cpplint"
 ]
 
 [project.urls]
