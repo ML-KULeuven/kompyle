@@ -35,6 +35,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # see pyproject.toml
+      - name: Set macos deployment target
+        if: runner.os == 'macOS'
+        run: echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
+
       - name: Set lowercase repository
         if: matrix.platform == 'linux'
         run: echo "REPO_LC=${REPO,,}" >> $GITHUB_ENV
