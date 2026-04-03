@@ -69,6 +69,7 @@ jobs:
           path: |
             /usr/local/lib
             /usr/local/include
+            /usr/local/bin
           key: macos-deps-${{ hashFiles('scripts/deps/**') }}
 
 
@@ -105,8 +106,8 @@ jobs:
       - name: Prepare macos dependency paths
         if: runner.os == 'macOS'
         run: |
-          sudo mkdir -p /usr/local/lib /usr/local/include
-          sudo chown -R $USER /usr/local/lib /usr/local/include
+          sudo mkdir -p /usr/local/lib /usr/local/include /usr/local/bin
+          sudo chown -R $USER /usr/local/lib /usr/local/include /usr/local/bin
 
       - name: Restore macos dependencies
         if: runner.os == 'macOS'
@@ -115,6 +116,7 @@ jobs:
           path: |
             /usr/local/lib
             /usr/local/include
+            /usr/local/bin
           key: macos-deps-${{ hashFiles('scripts/deps/**') }}
 
       - name: Log in to GHCR
