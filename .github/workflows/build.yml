@@ -102,6 +102,12 @@ jobs:
         env:
           REPO: ${{ github.repository }}
 
+      - name: Prepare macos dependency paths
+        if: runner.os == 'macOS'
+        run: |
+          sudo mkdir -p /usr/local/lib /usr/local/include
+          sudo chown -R $USER /usr/local/lib /usr/local/include
+
       - name: Restore macos dependencies
         if: runner.os == 'macOS'
         uses: actions/cache/restore@v4
