@@ -1,0 +1,12 @@
+# kompyle development environment
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: docker/dev.dockerfile
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
