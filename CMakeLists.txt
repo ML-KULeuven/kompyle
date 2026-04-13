@@ -22,6 +22,7 @@ find_package(breakid        CONFIG REQUIRED)
 find_package(approxmc       CONFIG REQUIRED)
 find_package(klay           CONFIG REQUIRED)
 find_package(sdd            CONFIG REQUIRED)
+find_package(md4            CONFIG REQUIRED)
 
 find_package(cadical        MODULE REQUIRED)
 find_package(cadiback       MODULE REQUIRED)
@@ -43,6 +44,7 @@ set(dependencies
         sdd::sdd_compiler
         cadical::cadical
         cadiback::cadiback
+        md4::d4
 )
 
 add_library(kompyle SHARED
