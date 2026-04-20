@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.15...3.27)
 project(kompyle LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -50,6 +53,8 @@ set(dependencies
 add_library(kompyle SHARED
   src/core.cpp
   src/sdd.cpp
+  src/dfour.cpp
+  src/gated_formula.cpp
 )
 
 target_include_directories(kompyle

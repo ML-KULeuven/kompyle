@@ -42,4 +42,17 @@ klay::Node* compile_from_sdd(
     Circuit* circ,
     SddNode* root);
 
+
+klay::Node* compile_from_cnf_using_d4v2(
+    Circuit* circ,
+    const std::string& cnf_file);
+
+klay::Node* compile_from_gates_using_d4v2(
+    Circuit* circ,
+    const std::string& gformula);
+
+klay::Node* compile_from_gates_using_d4v2(
+    Circuit* circ,
+    const GatedFormula* gformula);
+
 }  // namespace kmpyl
