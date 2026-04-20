@@ -4,12 +4,20 @@ set -euo pipefail
 DEPS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$DEPS_DIR/common.sh"
 
-git clone -b ref/clean-up https://github.com/IbrahimElk/d4v2
+git clone --depth=1 --branch ref/shared-litnamemap \
+  https://github.com/IbrahimElk/d4v2
 
 cd d4v2
-cmake --preset release
-cmake --build --preset release -j$(nproc)
-$SUDO cmake --install build-release
+
+cmake -S . -B build \
+  -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DENABLE_TESTING=OFF
+cmake --build build -j$(nproc)
+$SUDO cmake --install build
+
+# cmake --preset release
+# cmake --build --preset release -j$(nproc)
+# $SUDO cmake --install build-release
 
 cd ../..
 ldconfig_if_linux
