@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <string>
 
+namespace kmpyl {
+
 struct ArjunOptions {
   int arjun_verb = 0;
   int do_arjun = 1;
@@ -32,3 +34,5 @@ struct ArjunOptions {
   ArjunNS::Arjun::ElimToFileConf etof_conf;
   ArjunNS::SimpConf simp_conf;
 };
+
+}  // namespace kmpyl

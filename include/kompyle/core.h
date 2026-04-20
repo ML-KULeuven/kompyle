@@ -21,19 +21,23 @@ extern "C" {
 #include "field_circuit.h"
 #include "constants.h"
 
-Node* compile_from_cnf_using_ganak(
+namespace kmpyl {
+
+klay::Node* compile_from_cnf_using_ganak(
     Circuit* circ,
     const std::string& cnf_file);
 
-Node* compile_from_cnf_using_ganakarjun(
+klay::Node* compile_from_cnf_using_ganakarjun(
     Circuit* circ,
     const std::string& cnf_file);
 
 
-Node* compile_from_cnf_using_sdd(
+klay::Node* compile_from_cnf_using_sdd(
     Circuit* circ,
     const std::string& cnf_file);
 
-Node* compile_from_sdd(
+klay::Node* compile_from_sdd(
     Circuit* circ,
     SddNode* root);
+
+}  // namespace kmpyl

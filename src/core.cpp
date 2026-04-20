@@ -4,6 +4,7 @@
 #include "kompyle/core.h"
 #include "kompyle/constants.h"
 
+namespace kmpyl {
 
 vector<GanakInt::Lit>
 arjun_to_ganak_cl(const vector<CMSat::Lit>& cl,
@@ -118,7 +119,7 @@ cms_to_ganak_cl(const vector<CMSat::Lit>& cl) {
 }
 
 
-Node*
+klay::Node*
 compile_from_cnf_using_ganak(
     Circuit* circ,
     const std::string& cnf_file) {
@@ -170,7 +171,7 @@ compile_from_cnf_using_ganak(
 }
 
 
-Node*
+klay::Node*
 compile_from_cnf_using_ganakarjun(
     Circuit* circ,
     const std::string& cnf_file)
@@ -185,7 +186,7 @@ compile_from_cnf_using_ganakarjun(
   run_arjun(cnf, ao);
 
   auto& mw = cnf.multiplier_weight;
-  Node* mw_node = dynamic_cast<FCircuit*>(mw.get())->get_node();
+  klay::Node* mw_node = dynamic_cast<FCircuit*>(mw.get())->get_node();
 
   // NOTE(Ibrahim):
   // fast lookup structures
@@ -272,10 +273,12 @@ compile_from_cnf_using_ganakarjun(
   }
 
   auto result  = counter.count();
-  Node* g_node = dynamic_cast<FCircuit*>(result.get())->get_node();
+  klay::Node* g_node = dynamic_cast<FCircuit*>(result.get())->get_node();
 
   if (g_node->is_false()) return circ->false_node().get();
   if (mw_node->is_true()) return g_node;
   if (g_node->is_true())  return mw_node;
-  return circ->and_node({NodePtr(mw_node), NodePtr(g_node)}).get();
+  return circ->and_node({klay::NodePtr(mw_node), klay::NodePtr(g_node)}).get();
 }
+
+}  // namespace kmpyl
