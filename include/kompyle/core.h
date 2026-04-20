@@ -18,10 +18,10 @@ extern "C" {
   #include <sdd/compiler.h>
 }
 
-#include "field_circuit.h"
 #include "circuit.h"
 #include "constants.h"
 #include "gated_formula.h"
+#include "field_circuit.h"
 
 namespace kmpyl {
 
