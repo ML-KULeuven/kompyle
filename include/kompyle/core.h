@@ -21,6 +21,7 @@ extern "C" {
 #include "field_circuit.h"
 #include "circuit.h"
 #include "constants.h"
+#include "gated_formula.h"
 
 namespace kmpyl {
 
