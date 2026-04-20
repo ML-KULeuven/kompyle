@@ -19,6 +19,7 @@ extern "C" {
 }
 
 #include "field_circuit.h"
+#include "circuit.h"
 #include "constants.h"
 
 namespace kmpyl {
