@@ -12,7 +12,7 @@ cd d4v2
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DENABLE_TESTING=OFF
-cmake --build build -j$(nproc)
+cmake --build build -j$NPROC
 $SUDO cmake --install build
 
 # cmake --preset release
