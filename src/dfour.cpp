@@ -192,10 +192,18 @@ compile_from_cnf_using_d4v2(Circuit* circ, const std::string& cnf_file) {
   preproc_config.nbIteration   = 5;
   preproc_config.timeout       = 60;
 
-  // FIXME(Ibrahim): SHARP_EQUIV, COMPILE_EQUIV triggers an assertion on
-  // trivially-unsat problems inside d4v2's bipartition preproc. Keep
-  // BASIC (i.e. no-op) until that's fixed upstream.
-  preproc_config.preprocMethod = d4::SHARP_EQUIV;
+  // don't work: doesn't perpserve correct models
+  // preproc_config.preprocMethod = d4::COMPILE_EQUIV;
+  // preproc_config.preprocMethod = d4::SHARP_EQUIV;
+
+  // works:
+  // preproc_config.preprocMethod = d4::BACKBONE;
+  preproc_config.preprocMethod = d4::EQUIV;
+  // preproc_config.preprocMethod = d4::VIVI;
+  // preproc_config.preprocMethod = d4::OCC_ELIM;
+  // preproc_config.preprocMethod = d4::COMB;
+
+  // preproc_config.preprocMethod = d4::BASIC;
 
   using MM = d4::MethodManager;
   auto* problem = MM::runPreproc(preproc_config, init_problem, std::cout);
@@ -218,11 +226,7 @@ compile_from_cnf_using_d4v2(Circuit* circ, const std::string& cnf_file) {
   bheuristic.reversePhase           = false;
 
   auto& poh = bheuristic.configurationPartialOrderHeuristic;
-
-  // FIXME(Ibrahim): PARTIAL_ORDER_TREE_DECOMPOSITION triggers an assertion
-  // inside d4v2. Keep NONE until that's fixed upstream.
-
-  poh.partialOrderMethod        = d4::PARTIAL_ORDER_NONE;
+  poh.partialOrderMethod        = d4::PARTIAL_ORDER_TREE_DECOMPOSITION;
   poh.treeDecompositionMethod   = d4::TREE_DECOMP_TREE_WIDTH;
   poh.graphExtractorMethod      = d4::GRAPH_PRIMAL;
   poh.treeDecompositionerMethod = d4::TREE_DECOMP_TOOL_FLOW_CUTTER;
@@ -287,18 +291,13 @@ compile_from_gates_using_d4v2(Circuit* circ, const GatedFormula* gf) {
   init_pm_weights(*init_problem, nb_vars);
 
   d4::ConfigurationPeproc preproc_config;
-  preproc_config.inputType    = d4::PB_CIRC;
-  preproc_config.nbIteration  = 5;
-  preproc_config.timeout      = 60;
 
   // NOTE(Ibrahim):
-  // PreprocManager::makePreprocManager defaults to PreprocBasicCircuit,
-  // whose run() is a no-op. SHARP_EQUIV / COMPILE_EQUIV caused issues
-  // (see compile_from_cnf_using_d4v2); stay with BASIC.
-  preproc_config.preprocMethod = d4::BASIC;
+  // there is no preprocessing (no-op) when using PB_CIRC
+  preproc_config.inputType = d4::PB_CIRC;
 
-  d4::ProblemManager* problem =
-      d4::MethodManager::runPreproc(preproc_config, init_problem, std::cout);
+  using MM = d4::MethodManager;
+  d4::ProblemManager* problem = MM::runPreproc(preproc_config, init_problem, std::cout);
   assert(problem);
 
   d4::MethodManager::displayInfoVariables(problem, std::cout);
@@ -320,7 +319,7 @@ compile_from_gates_using_d4v2(Circuit* circ, const GatedFormula* gf) {
   bheuristic.reversePhase           = false;
 
   auto& poh = bheuristic.configurationPartialOrderHeuristic;
-  poh.partialOrderMethod        = d4::PARTIAL_ORDER_NONE;
+  poh.partialOrderMethod        = d4::PARTIAL_ORDER_TREE_DECOMPOSITION;
   poh.treeDecompositionMethod   = d4::TREE_DECOMP_TREE_WIDTH;
   poh.graphExtractorMethod      = d4::GRAPH_PRIMAL;
   poh.treeDecompositionerMethod = d4::TREE_DECOMP_TOOL_FLOW_CUTTER;
