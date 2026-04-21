@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPS_DIR="$SCRIPT_DIR/deps"
 
 bash "$DEPS_DIR/00_system.sh"
+bash "$DEPS_DIR/01_boost.sh"
 bash "$DEPS_DIR/01_gmp.sh"
 bash "$DEPS_DIR/02_mpfr.sh"
 bash "$DEPS_DIR/03_flint.sh"
