@@ -11,5 +11,5 @@ cd armadillo-14.0.2
 make -j$NPROC
 $SUDO make install
 cd ..
-cleanup armadillo-14.0.2 armadillo-14.0.2.tar.xz
+# cleanup armadillo-14.0.2 armadillo-14.0.2.tar.xz
 ldconfig_if_linux
