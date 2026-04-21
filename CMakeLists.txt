@@ -16,6 +16,7 @@ find_package(Python 3.10
         OPTIONAL_COMPONENTS Development.SABIModule)
 
 find_package(nanobind       CONFIG REQUIRED)
+find_package(Boost          CONFIG REQUIRED)
 
 find_package(cryptominisat5 MODULE REQUIRED)
 find_package(arjun          MODULE REQUIRED)
