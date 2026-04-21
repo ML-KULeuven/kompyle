@@ -7,7 +7,6 @@
 #include <klay/node.h>
 
 #include <vector>
-#include <boost/multiprecision/gmp.hpp>
 #include <md4/methods/nnf/Node.hpp>
 #include <md4/methods/OperationManager.hpp>
 

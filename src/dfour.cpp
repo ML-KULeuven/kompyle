@@ -32,7 +32,6 @@
 #include <md4/preprocs/PreprocManager.hpp>
 
 
-namespace mpz = boost::multiprecision;
 namespace kmpyl {
 
 // ---------------------------------------------------------------------------
@@ -229,7 +228,7 @@ compile_from_cnf_using_d4v2(Circuit* circ, const std::string& cnf_file) {
   poh.treeDecompositionerMethod = d4::TREE_DECOMP_TOOL_FLOW_CUTTER;
   poh.useSimpGraphExtractor     = true;
 
-  auto* klayOp = new KlayCircuitOperation<mpz::mpz_int>(circ);
+  auto* klayOp = new KlayCircuitOperation<d4::mpz::mpz_int>(circ);
 
   d4::ConfigurationDpllStyleMethod config;
   config.inputName            = "input constructed from python";
@@ -244,7 +243,7 @@ compile_from_cnf_using_d4v2(Circuit* circ, const std::string& cnf_file) {
 
   d4::OptionDpllStyleMethod options(config);
 
-  using D4Method = d4::DpllStyleMethod<mpz::mpz_int, klay::Node*>;
+  using D4Method = d4::DpllStyleMethod<d4::mpz::mpz_int, klay::Node*>;
   auto* method = new D4Method(options, problem, std::cout);
 
   klay::Node* result = method->run();
@@ -329,7 +328,7 @@ compile_from_gates_using_d4v2(Circuit* circ, const GatedFormula* gf) {
 
   std::vector<uint8_t> is_gate_var = build_exclusion_mask(init_problem);
 
-  using KlayOperation = KlayCircuitOperation<mpz::mpz_int>;
+  using KlayOperation = KlayCircuitOperation<d4::mpz::mpz_int>;
   auto* klayOp = new KlayOperation(circ, std::move(is_gate_var));
 
   d4::ConfigurationDpllStyleMethod config;
@@ -346,7 +345,7 @@ compile_from_gates_using_d4v2(Circuit* circ, const GatedFormula* gf) {
 
   d4::OptionDpllStyleMethod options(config);
 
-  using D4Method = d4::DpllStyleMethod<mpz::mpz_int, klay::Node*>;
+  using D4Method = d4::DpllStyleMethod<d4::mpz::mpz_int, klay::Node*>;
   auto* method = new D4Method(options, problem, std::cout);
 
   klay::Node* result = method->run();
