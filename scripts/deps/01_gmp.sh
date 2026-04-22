@@ -11,5 +11,5 @@ cd gmp-6.3.0
 make -j$NPROC
 $SUDO make install
 cd ..
-cleanup gmp-6.3.0 gmp-6.3.0.tar.xz
+# cleanup gmp-6.3.0 gmp-6.3.0.tar.xz
 ldconfig_if_linux

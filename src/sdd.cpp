@@ -3,12 +3,14 @@
 
 #include "kompyle/core.h"
 
-Node* sdd_to_klay(SddNode* node, Circuit& circuit,
-                  std::unordered_map<SddNode*, Node*>& cache) {
+namespace kmpyl {
+
+klay::Node* sdd_to_klay(SddNode* node, Circuit& circuit,
+                        std::unordered_map<SddNode*, klay::Node*>& cache) {
   auto it = cache.find(node);
   if (it != cache.end()) return it->second;
 
-  Node* result;
+  klay::Node* result;
 
   if (sdd_node_is_true(node)) {
     result = circuit.true_node().get();
@@ -26,13 +28,14 @@ Node* sdd_to_klay(SddNode* node, Circuit& circuit,
     SddNodeSize n = sdd_node_size(node);
     SddNode** elements = sdd_node_elements(node);
 
-    std::vector<NodePtr> or_children;
+    std::vector<klay::NodePtr> or_children;
     for (SddNodeSize i = 0; i < n; i++) {
       SddNode* prime = elements[2*i];
       SddNode* sub   = elements[2*i + 1];
-      Node* klay_prime = sdd_to_klay(prime, circuit, cache);
-      Node* klay_sub   = sdd_to_klay(sub, circuit, cache);
-      NodePtr and_child = circuit.and_node({NodePtr(klay_prime), NodePtr(klay_sub)});
+      klay::Node* klay_prime = sdd_to_klay(prime, circuit, cache);
+      klay::Node* klay_sub   = sdd_to_klay(sub, circuit, cache);
+      klay::NodePtr and_child = circuit.and_node({klay::NodePtr(klay_prime),
+                                                  klay::NodePtr(klay_sub)});
       or_children.push_back(and_child);
     }
     result = circuit.or_node(or_children).get();
@@ -52,12 +55,12 @@ Node* sdd_to_klay(SddNode* node, Circuit& circuit,
 // pass options from python to tweak sdd manager
 // see also SddCompilerOptions
 // see issue: #10
-Node* compile_from_sdd(Circuit* circ, SddNode* root) {
+klay::Node* compile_from_sdd(Circuit* circ, SddNode* root) {
   assert(circ != nullptr);
   assert(root != nullptr);
-  std::unordered_map<SddNode*, Node*> cache;
-  Node* klay_root = sdd_to_klay(root, *circ, cache);
-  return NodePtr(klay_root).get();
+  std::unordered_map<SddNode*, klay::Node*> cache;
+  klay::Node* klay_root = sdd_to_klay(root, *circ, cache);
+  return klay::NodePtr(klay_root).get();
 }
 
 
@@ -65,7 +68,8 @@ Node* compile_from_sdd(Circuit* circ, SddNode* root) {
 // pass options from python to tweak sdd manager
 // see also SddCompilerOptions
 // see issue: #10
-Node* compile_from_cnf_using_sdd(Circuit* circ, const std::string& cnf_file) {
+klay::Node* compile_from_cnf_using_sdd(Circuit* circ,
+                                       const std::string& cnf_file) {
   assert(circ != nullptr);
 
   SddCompilerOptions options;
@@ -110,8 +114,8 @@ Node* compile_from_cnf_using_sdd(Circuit* circ, const std::string& cnf_file) {
 
   // TODO(Ibrahim):
   // make it a proper cache by restricting size
-  std::unordered_map<SddNode*, Node*> cache;
-  Node* klay_root = sdd_to_klay(root, *circ, cache);
+  std::unordered_map<SddNode*, klay::Node*> cache;
+  klay::Node* klay_root = sdd_to_klay(root, *circ, cache);
 
   sdd_manager_free(manager);
   free_fnf(cnf);
@@ -120,3 +124,6 @@ Node* compile_from_cnf_using_sdd(Circuit* circ, const std::string& cnf_file) {
   // circ->set_root(klay_root);
   return klay_root;
 }
+
+
+}  // namespace kmpyl

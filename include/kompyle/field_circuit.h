@@ -10,29 +10,30 @@
 #include <cryptominisat5/solvertypesmini.h>
 #include <klay/circuit.h>
 #include <klay/node.h>
+namespace kmpyl {
 
-static void collect_lits(Node* n,
-                         std::unordered_map<Node*, bool>& visited,
+static void collect_lits(klay::Node* n,
+                         std::unordered_map<klay::Node*, bool>& visited,
                          std::vector<int>& out)
 {
   if (!visited.emplace(n, true).second) return;
-  if (n->type == NodeType::Leaf) { out.push_back(n->ix); return; }
-  for (Node* c : n->children) collect_lits(c, visited, out);
+  if (n->type == klay::NodeType::Leaf) { out.push_back(n->ix); return; }
+  for (klay::Node* c : n->children) collect_lits(c, visited, out);
 }
 
-static Node* cofactor(Node* n, int pos_ix, Circuit* circ,
-                      std::unordered_map<Node*, Node*>& memo)
+static klay::Node* cofactor(klay::Node* n, int pos_ix, Circuit* circ,
+                      std::unordered_map<klay::Node*, klay::Node*>& memo)
 {
   auto it = memo.find(n);
   if (it != memo.end()) return it->second;
 
-  Node* result;
+  klay::Node* result;
   switch (n->type) {
-  case NodeType::True:
-  case NodeType::False:
+  case klay::NodeType::True:
+  case klay::NodeType::False:
     result = n;
     break;
-  case NodeType::Leaf:
+  case klay::NodeType::Leaf:
     if (n->ix == pos_ix)
       result = circ->true_node().get();
     else if (n->ix == (pos_ix ^ 1))
@@ -40,19 +41,19 @@ static Node* cofactor(Node* n, int pos_ix, Circuit* circ,
     else
       result = n;
     break;
-  case NodeType::And: {
-    std::vector<NodePtr> ch;
+  case klay::NodeType::And: {
+    std::vector<klay::NodePtr> ch;
     ch.reserve(n->children.size());
-    for (Node* c : n->children)
-      ch.push_back(NodePtr(cofactor(c, pos_ix, circ, memo)));
+    for (klay::Node* c : n->children)
+      ch.push_back(klay::NodePtr(cofactor(c, pos_ix, circ, memo)));
     result = circ->and_node(ch).get();
     break;
   }
-  case NodeType::Or: {
-    std::vector<NodePtr> ch;
+  case klay::NodeType::Or: {
+    std::vector<klay::NodePtr> ch;
     ch.reserve(n->children.size());
-    for (Node* c : n->children)
-      ch.push_back(NodePtr(cofactor(c, pos_ix, circ, memo)));
+    for (klay::Node* c : n->children)
+      ch.push_back(klay::NodePtr(cofactor(c, pos_ix, circ, memo)));
     result = circ->or_node(ch).get();
     break;
   }
@@ -66,7 +67,7 @@ static Node* cofactor(Node* n, int pos_ix, Circuit* circ,
 
 static void
 print_circuit_ascii(std::ostream& os,
-                    const Node*   node,
+                    const klay::Node* node,
                     const std::string& prefix,
                     bool is_last)
 {
@@ -80,15 +81,15 @@ print_circuit_ascii(std::ostream& os,
 
   std::string label = node->get_label();
   switch (node->type) {
-  case NodeType::Leaf: {
+  case klay::NodeType::Leaf: {
     int var = node->ix >> 1;
     bool neg = node->ix & 1;
     label += neg ? "  (neg x" + std::to_string(var) + ")"
                  : "  (x"     + std::to_string(var) + ")";
     break;
   }
-  case NodeType::True:  label += "  (T)"; break;
-  case NodeType::False: label += "  (F)"; break;
+  case klay::NodeType::True:  label += "  (T)"; break;
+  case klay::NodeType::False: label += "  (F)"; break;
   default: break;
   }
 
@@ -105,14 +106,14 @@ print_circuit_ascii(std::ostream& os,
 
 class FCircuit final : public CMSat::Field {
  public:
-  FCircuit(Node* node, Circuit* circ, double count = 1.0)
+  FCircuit(klay::Node* node, Circuit* circ, double count = 1.0)
     : circ_(circ), count_(count)
   {
     if (node->is_false()) { is_zero_ = true; }
     if (!node->is_true()) { push_factor(node); }
   }
 
-  Node* get_node() const { return materialise(); }
+  klay::Node* get_node() const { return materialise(); }
   Circuit* get_circuit() const { return circ_; }
   double get_count() const { return count_; }
 
@@ -127,7 +128,7 @@ class FCircuit final : public CMSat::Field {
 
   std::unique_ptr<Field> add(const Field& other) final {
     const auto& o = cast(other);
-    Node* onode = circ_->or_node({materialise(),o.materialise()}).get();
+    klay::Node* onode = circ_->or_node({materialise(),o.materialise()}).get();
     auto tn = circ_->true_node().get();
     auto f = std::make_unique<FCircuit>(tn, circ_, count_ + o.count_);
     f->push_factor(onode);
@@ -136,7 +137,7 @@ class FCircuit final : public CMSat::Field {
 
   Field& operator+=(const Field& other) final {
     const auto& o = cast(other);
-    Node* onode = circ_->or_node({materialise(),o.materialise()}).get();
+    klay::Node* onode = circ_->or_node({materialise(),o.materialise()}).get();
     factors_.clear();
     lit_to_factor_.clear();
     is_zero_ = false;
@@ -151,7 +152,7 @@ class FCircuit final : public CMSat::Field {
     if (o.is_zero_) { set_zero(); return *this; }
 
     const size_t base = factors_.size();
-    for (Node* f : o.factors_) {
+    for (klay::Node* f : o.factors_) {
       if (f->is_false()) {
         set_zero();
         count_ = 0.0;
@@ -178,8 +179,8 @@ class FCircuit final : public CMSat::Field {
 
     count_ /= o.count_;
 
-    for (Node* to_remove : o.factors_) {
-      assert(to_remove->type == NodeType::Leaf);
+    for (klay::Node* to_remove : o.factors_) {
+      assert(to_remove->type == klay::NodeType::Leaf);
       if (is_zero_) return *this;
 
       const int pos_ix = to_remove->ix;
@@ -191,17 +192,17 @@ class FCircuit final : public CMSat::Field {
       }
 
       const size_t fidx = map_it->second;
-      Node* factor = factors_[fidx];
+      klay::Node* factor = factors_[fidx];
 
-      if (factor->type == NodeType::Leaf) {
+      if (factor->type == klay::NodeType::Leaf) {
         factors_[fidx] = circ_->true_node().get();
         lit_to_factor_.erase(pos_ix);
         lit_to_factor_.erase(pos_ix ^ 1);
         continue;
       }
 
-      std::unordered_map<Node*, Node*> memo;
-      Node* cofactored = cofactor(factor, pos_ix, circ_, memo);
+      std::unordered_map<klay::Node*, klay::Node*> memo;
+      klay::Node* cofactored = cofactor(factor, pos_ix, circ_, memo);
 
       if (cofactored->is_false()) { 
         set_zero(); 
@@ -244,12 +245,12 @@ class FCircuit final : public CMSat::Field {
 
   bool is_one() const final {
     if (is_zero_) return false;
-    for (Node* f : factors_) if (!f->is_true()) return false;
+    for (klay::Node* f : factors_) if (!f->is_true()) return false;
     return true;
   }
 
   std::ostream& display(std::ostream& os) const final {
-    const Node* root = materialise();
+    const klay::Node* root = materialise();
     if (!root) { os << "(null)"; return os; }
 
     os << root->get_label()
@@ -287,24 +288,24 @@ class FCircuit final : public CMSat::Field {
     return static_cast<const FCircuit&>(f);
   }
 
-  Node* materialise() const {
+  klay::Node* materialise() const {
     if (is_zero_) return circ_->false_node().get();
-    std::vector<NodePtr> live;
-    for (Node* f : factors_)
+    std::vector<klay::NodePtr> live;
+    for (klay::Node* f : factors_)
       if (!f->is_true()) live.push_back(f);
     if (live.empty()) return circ_->true_node().get();
     if (live.size() == 1) return live[0].get();
     return circ_->and_node(live).get();
   }
 
-  void push_factor(Node* n) {
+  void push_factor(klay::Node* n) {
     if (n->is_false()) { set_zero(); return; }
     if (n->is_true()) return;
 
     const size_t idx = factors_.size();
     factors_.push_back(n);
 
-    std::unordered_map<Node*, bool> visited;
+    std::unordered_map<klay::Node*, bool> visited;
     std::vector<int> lits;
     collect_lits(n, visited, lits);
     for (int l : lits) lit_to_factor_[l] = idx;
@@ -317,7 +318,7 @@ class FCircuit final : public CMSat::Field {
   // see `FDouble` in cryptominisat
   double count_;
   bool is_zero_ = false;
-  std::vector<Node*> factors_;
+  std::vector<klay::Node*> factors_;
   std::unordered_map<int, size_t> lit_to_factor_;
 };
 
@@ -361,3 +362,5 @@ class FGenCircuit final : public CMSat::FieldGen {
  private:
   Circuit* circ_;
 };
+
+}  // namespace kmpyl

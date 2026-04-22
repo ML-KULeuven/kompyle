@@ -1,9 +1,11 @@
 # Building and installing
 
-To avoid installing things system-wide on your local machine,
-one could use docker or a vm with the build script.
+```bash
+podman build -t kompyle-env -f docker/dev.dockerfile .
+podman run --rm -it kompyle-env bash
+```
 
 ```bash
-docker build -t kompyle-env .
-docker run --rm -it kompyle-env bash
+pip install notebook
+jupyter notebook --allow-root --ip=0.0.0.0 --no-browser
 ```

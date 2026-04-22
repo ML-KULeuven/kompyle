@@ -11,5 +11,5 @@ cd flint-3.2.0-rc1
 make -j$NPROC
 $SUDO make install
 cd ..
-cleanup flint-3.2.0-rc1 flint-3.2.0-rc1.tar.gz
+# cleanup flint-3.2.0-rc1 flint-3.2.0-rc1.tar.gz
 ldconfig_if_linux

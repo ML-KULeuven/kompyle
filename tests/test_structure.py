@@ -1,7 +1,7 @@
 # Copyright (c) 2026 Ibrahim El Kaddouri
 # Licensed under apachev2
 
-from util import assert_correct_structure, compile_inline
+from util import assert_correct_structure
 
 class TestCircuitStructure:
 
@@ -29,38 +29,6 @@ class TestCircuitStructure:
     def test_unit_clause_only(self, pair_unit_clause_only):
         assert_correct_structure(pair_unit_clause_only)
 
-    # # def test_alarm(self, pair_alarm):
-    # #     assert_decomposable_and_smooth(pair_alarm.circuit,
-    # #                                    label=pair_alarm.desc)
-    # #
-    # # def test_child(self, pair_child):
-    # #     assert_decomposable_and_smooth(pair_child.circuit,
-    # #                                    label=pair_child.desc)
-    # #
-    # # def test_hailfinder(self, pair_hailfinder):
-    # #     assert_decomposable_and_smooth(pair_hailfinder.circuit,
-    # #                                    label=pair_hailfinder.desc)
-    # #
-    # # def test_munin(self, pair_munin):
-    # #     assert_decomposable_and_smooth(pair_munin.circuit,
-    # #                                    label=pair_munin.desc)
-    # #
-    # # def test_pathfinder(self, pair_pathfinder):
-    # #     assert_decomposable_and_smooth(pair_pathfinder.circuit,
-    # #                                    label=pair_pathfinder.desc)
-    # #
-    # # def test_pigs(self, pair_pigs):
-    # #     assert_decomposable_and_smooth(pair_pigs.circuit,
-    # #                                    label=pair_pigs.desc)
-    #
-    # # def test_count124(self, pair_count124):
-    # #     assert_decomposable_and_smooth(pair_count124.circuit,
-    # #                                    label=pair_count124.desc)
-    # #
-    # # def test_count153(self, pair_count153):
-    # #     assert_decomposable_and_smooth(pair_count153.circuit,
-    # #                                    label=pair_count153.desc)
-
     def test_unit_forced(self, pair_unit_forced):
         assert_correct_structure(pair_unit_forced)
 
@@ -72,3 +40,29 @@ class TestCircuitStructure:
 
     def test_unit_cascade_large(self, pair_unit_cascade_large):
         assert_correct_structure(pair_unit_cascade_large)
+
+    # -----------------------------------------------------------------
+
+    def test_gf_trivial_sat(self, gf_pair_trivial_sat):
+        assert_correct_structure(gf_pair_trivial_sat)
+
+    def test_gf_xor(self, gf_pair_xor):
+        assert_correct_structure(gf_pair_xor)
+
+    def test_gf_exactly_one(self, gf_pair_exactly_one):
+        assert_correct_structure(gf_pair_exactly_one)
+
+    def test_gf_random(self, gf_pair_random):
+        assert_correct_structure(gf_pair_random)
+
+    def test_gf_circ1(self, gf_pair_circ1):
+        assert_correct_structure(gf_pair_circ1)
+
+    def test_gf_noisy_or_2(self, gf_pair_noisy_or_2):
+        assert_correct_structure(gf_pair_noisy_or_2)
+
+    def test_gf_test(self, gf_pair_test):
+        assert_correct_structure(gf_pair_test)
+
+    def test_gf_verilog(self, gf_pair_verilog_jpsety_c17):
+        assert_correct_structure(gf_pair_verilog_jpsety_c17)

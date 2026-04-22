@@ -14,5 +14,5 @@ cmake \
 cmake --build . -j$NPROC --config $BUILD_TYPE
 $SUDO cmake --install . --config $BUILD_TYPE
 cd ../..
-cleanup mlpack
+# cleanup mlpack
 ldconfig_if_linux

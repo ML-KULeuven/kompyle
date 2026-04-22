@@ -1,0 +1,24 @@
+find_path(GMP_INCLUDE_DIR NAMES gmp.h
+    PATHS /usr/local/include
+    NO_DEFAULT_PATH
+)
+find_library(GMP_LIBRARY NAMES gmp
+    PATHS /usr/local/lib
+    NO_DEFAULT_PATH
+)
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(GMP
+    REQUIRED_VARS
+    GMP_INCLUDE_DIR
+    GMP_LIBRARY
+)
+
+if(GMP_FOUND AND NOT TARGET GMP::gmp)
+    add_library(GMP::gmp SHARED IMPORTED)
+    set_target_properties(GMP::gmp PROPERTIES
+        IMPORTED_LOCATION "${GMP_LIBRARY}"
+        INTERFACE_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"
+    )
+endif()
+

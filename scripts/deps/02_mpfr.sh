@@ -11,5 +11,5 @@ cd mpfr-4.2.1
 make -j$NPROC
 $SUDO make install
 cd ..
-cleanup mpfr-4.2.1 mpfr-4.2.1.tar.xz
+# cleanup mpfr-4.2.1 mpfr-4.2.1.tar.xz
 ldconfig_if_linux

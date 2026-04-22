@@ -19,4 +19,4 @@ cmake -DJUST_INSTALL_CEREAL=ON ..
 cmake --build . -j$NPROC --config $BUILD_TYPE
 $SUDO cmake --install . --config $BUILD_TYPE
 cd ../..
-cleanup cereal-1.3.2 v1.3.2.tar.gz
+# cleanup cereal-1.3.2 v1.3.2.tar.gz

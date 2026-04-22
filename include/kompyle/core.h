@@ -18,22 +18,41 @@ extern "C" {
   #include <sdd/compiler.h>
 }
 
-#include "field_circuit.h"
+#include "circuit.h"
 #include "constants.h"
+#include "gated_formula.h"
+#include "field_circuit.h"
 
-Node* compile_from_cnf_using_ganak(
+namespace kmpyl {
+
+klay::Node* compile_from_cnf_using_ganak(
     Circuit* circ,
     const std::string& cnf_file);
 
-Node* compile_from_cnf_using_ganakarjun(
+klay::Node* compile_from_cnf_using_ganakarjun(
     Circuit* circ,
     const std::string& cnf_file);
 
 
-Node* compile_from_cnf_using_sdd(
+klay::Node* compile_from_cnf_using_sdd(
     Circuit* circ,
     const std::string& cnf_file);
 
-Node* compile_from_sdd(
+klay::Node* compile_from_sdd(
     Circuit* circ,
     SddNode* root);
+
+
+klay::Node* compile_from_cnf_using_d4v2(
+    Circuit* circ,
+    const std::string& cnf_file);
+
+klay::Node* compile_from_gates_using_d4v2(
+    Circuit* circ,
+    const std::string& gformula);
+
+klay::Node* compile_from_gates_using_d4v2(
+    Circuit* circ,
+    const GatedFormula* gformula);
+
+}  // namespace kmpyl

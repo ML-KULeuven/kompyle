@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.15...3.27)
 project(kompyle LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -13,6 +16,7 @@ find_package(Python 3.10
         OPTIONAL_COMPONENTS Development.SABIModule)
 
 find_package(nanobind       CONFIG REQUIRED)
+find_package(Boost          CONFIG REQUIRED)
 
 find_package(cryptominisat5 MODULE REQUIRED)
 find_package(arjun          MODULE REQUIRED)
@@ -22,7 +26,9 @@ find_package(breakid        CONFIG REQUIRED)
 find_package(approxmc       CONFIG REQUIRED)
 find_package(klay           CONFIG REQUIRED)
 find_package(sdd            CONFIG REQUIRED)
+find_package(md4            CONFIG REQUIRED)
 
+find_package(GMP            MODULE REQUIRED)
 find_package(cadical        MODULE REQUIRED)
 find_package(cadiback       MODULE REQUIRED)
 
@@ -43,11 +49,14 @@ set(dependencies
         sdd::sdd_compiler
         cadical::cadical
         cadiback::cadiback
+        md4::d4
 )
 
 add_library(kompyle SHARED
   src/core.cpp
   src/sdd.cpp
+  src/dfour.cpp
+  src/gated_formula.cpp
 )
 
 target_include_directories(kompyle
@@ -57,7 +66,10 @@ target_include_directories(kompyle
 )
 
 
-target_link_libraries(kompyle PUBLIC ${dependencies})
+target_link_libraries(kompyle PUBLIC 
+  ${dependencies}
+  GMP::gmp
+)
 
 # NOTE(Ibrahim):
 # * all these shared libs are packed together in kompyle site-package
