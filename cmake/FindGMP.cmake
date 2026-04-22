@@ -9,7 +9,7 @@ find_package_handle_standard_args(GMP
 )
 
 if(GMP_FOUND AND NOT TARGET GMP::gmp)
-    add_library(GMP::gmp STATIC IMPORTED)
+    add_library(GMP::gmp SHARED IMPORTED)
     set_target_properties(GMP::gmp PROPERTIES
         IMPORTED_LOCATION "${GMP_LIBRARY}"
         INTERFACE_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"

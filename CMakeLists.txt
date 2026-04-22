@@ -49,7 +49,6 @@ set(dependencies
         sdd::sdd_compiler
         cadical::cadical
         cadiback::cadiback
-        GMP::gmp
         md4::d4
 )
 
@@ -67,7 +66,10 @@ target_include_directories(kompyle
 )
 
 
-target_link_libraries(kompyle PUBLIC ${dependencies})
+target_link_libraries(kompyle PUBLIC 
+  ${dependencies}
+  GMP::gmp
+)
 
 # NOTE(Ibrahim):
 # * all these shared libs are packed together in kompyle site-package

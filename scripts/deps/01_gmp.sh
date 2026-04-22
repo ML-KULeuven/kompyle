@@ -7,7 +7,7 @@ source "$DEPS_DIR/common.sh"
 wget -q https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
 tar xf gmp-6.3.0.tar.xz
 cd gmp-6.3.0
-./configure --enable-cxx --disable-shared --enable-static --with-pic
+./configure --enable-cxx --enable-shared
 make -j$NPROC
 $SUDO make install
 cd ..
