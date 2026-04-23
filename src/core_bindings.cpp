@@ -121,6 +121,14 @@ NB_MODULE(pkompyle, m) {
         "circuit"_a, "sdd_node"_a,
         "Transform a pysdd SddNode into an equivalent klay sub-circuit.");
 
+  m.def("_compile_from_sdd_raw",
+        [](Circuit* circ, uintptr_t raw_ptr) -> klay::NodePtr {
+            auto* sdd_root = reinterpret_cast<SddNode*>(raw_ptr);
+            return compile_from_sdd(circ, sdd_root);
+        },
+        "circuit"_a, "sdd_node"_a,
+        "Transform a pysdd SddNode into an equivalent klay circuit.");
+
   m.def("compile_from_cnf_using_d4v2",
         [](Circuit* circuit, const std::string& cnf_file) -> klay::NodePtr {
           return compile_from_cnf_using_d4v2(circuit, cnf_file);
