@@ -1,4 +1,4 @@
-FROM quay.io/pypa/manylinux_2_28_x86_64:latest as deps
+FROM quay.io/pypa/manylinux_2_28_x86_64:latest AS deps
 
 COPY scripts/build_deps.sh  /tmp/build_deps.sh
 COPY scripts/deps/          /tmp/deps/
