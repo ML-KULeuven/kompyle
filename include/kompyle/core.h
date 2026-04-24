@@ -13,11 +13,6 @@
 #include <klay/circuit.h>
 #include <klay/node.h>
 
-extern "C" {
-  #include <sdd/sddapi.h>
-  #include <sdd/compiler.h>
-}
-
 #include "circuit.h"
 #include "constants.h"
 #include "gated_formula.h"
@@ -32,16 +27,6 @@ klay::Node* compile_from_cnf_using_ganak(
 klay::Node* compile_from_cnf_using_ganakarjun(
     Circuit* circ,
     const std::string& cnf_file);
-
-
-klay::Node* compile_from_cnf_using_sdd(
-    Circuit* circ,
-    const std::string& cnf_file);
-
-klay::Node* compile_from_sdd(
-    Circuit* circ,
-    SddNode* root);
-
 
 klay::Node* compile_from_cnf_using_d4v2(
     Circuit* circ,
