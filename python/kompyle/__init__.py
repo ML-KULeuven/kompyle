@@ -16,11 +16,14 @@ from .pkompyle import (
     GatedFormula,
     compile_from_cnf_using_ganak,
     compile_from_cnf_using_ganakarjun,
-    compile_from_cnf_using_sdd,
-    compile_from_sdd,
     compile_from_cnf_using_d4v2,
     compile_from_gates_file_using_d4v2,
     compile_from_gates_formula_using_d4v2,
+)
+
+from ._sdd import (
+    compile_from_sdd,
+    compile_from_cnf_using_sdd,
 )
 
 __all__ = [

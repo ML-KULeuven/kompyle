@@ -54,9 +54,6 @@ RUN bash /tmp/deps/14_approxmc.sh
 COPY scripts/deps/15_ganak.sh           /tmp/deps/15_ganak.sh
 RUN bash /tmp/deps/15_ganak.sh
 
-COPY scripts/deps/16_sdd.sh             /tmp/deps/16_sdd.sh
-RUN bash /tmp/deps/16_sdd.sh
-
 COPY scripts/deps/17_d4v2.sh             /tmp/deps/17_d4v2.sh
 RUN bash /tmp/deps/17_d4v2.sh
 

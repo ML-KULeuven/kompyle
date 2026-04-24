@@ -25,7 +25,6 @@ find_package(sbva           CONFIG REQUIRED)
 find_package(breakid        CONFIG REQUIRED)
 find_package(approxmc       CONFIG REQUIRED)
 find_package(klay           CONFIG REQUIRED)
-find_package(sdd            CONFIG REQUIRED)
 find_package(md4            CONFIG REQUIRED)
 
 find_package(GMP            MODULE REQUIRED)
@@ -45,8 +44,6 @@ set(dependencies
         sbva
         breakid
         approxmc
-        sdd::sdd
-        sdd::sdd_compiler
         cadical::cadical
         cadiback::cadiback
         md4::d4
@@ -54,7 +51,6 @@ set(dependencies
 
 add_library(kompyle SHARED
   src/core.cpp
-  src/sdd.cpp
   src/dfour.cpp
   src/gated_formula.cpp
 )
