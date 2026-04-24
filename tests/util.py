@@ -42,10 +42,10 @@ def _compile_from_cnf_using_d4v2(circuit: p.Circuit, cnf_path: str) -> p.NodePtr
 
 
 ALL_COMPILERS: List[Tuple[str, Callable]] = [
-    # ("from_cnf_using_ganak",        _compile_from_cnf_using_ganak),
-    # ("from_cnf_using_ganak_arjun",  _compile_from_cnf_using_ganakarjun),
-    # ("from_cnf_using_sdd",          _compile_from_cnf_using_sdd),
-    # ("from_sdd",                    _compile_from_sdd),
+    ("from_cnf_using_ganak",        _compile_from_cnf_using_ganak),
+    ("from_cnf_using_ganak_arjun",  _compile_from_cnf_using_ganakarjun),
+    ("from_cnf_using_sdd",          _compile_from_cnf_using_sdd),
+    ("from_sdd",                    _compile_from_sdd),
     ("from_cnf_using_d4v2",         _compile_from_cnf_using_d4v2)
 ]
 
