@@ -5,7 +5,7 @@ import os
 import random
 import tempfile
 import itertools
-import subprocess
+# import subprocess
 
 from dataclasses import dataclass
 from typing      import Dict, Generator, List, Tuple, Callable
@@ -24,10 +24,6 @@ def _compile_from_cnf_using_ganak(circuit: p.Circuit, cnf_path: str) -> p.NodePt
     return p.compile_from_cnf_using_ganak(circuit, cnf_path)
 
 
-def _compile_from_cnf_using_ganakarjun(circuit: p.Circuit, cnf_path: str) -> p.NodePtr:
-    return p.compile_from_cnf_using_ganakarjun(circuit, cnf_path)
-
-
 def _compile_from_cnf_using_sdd(circuit: p.Circuit, cnf_path: str) -> p.NodePtr:
     return p.compile_from_cnf_using_sdd(circuit, cnf_path)
 
@@ -43,7 +39,6 @@ def _compile_from_cnf_using_d4v2(circuit: p.Circuit, cnf_path: str) -> p.NodePtr
 
 ALL_COMPILERS: List[Tuple[str, Callable]] = [
     ("from_cnf_using_ganak",        _compile_from_cnf_using_ganak),
-    ("from_cnf_using_ganak_arjun",  _compile_from_cnf_using_ganakarjun),
     ("from_cnf_using_sdd",          _compile_from_cnf_using_sdd),
     ("from_sdd",                    _compile_from_sdd),
     ("from_cnf_using_d4v2",         _compile_from_cnf_using_d4v2)

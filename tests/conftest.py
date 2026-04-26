@@ -7,7 +7,7 @@ from util import (
     compile_inline,
     compile_file,
     random_clauses,
-    COMPILER_IDS, 
+    COMPILER_IDS,
     COMPILER_FUNCS,
     compile_gated,
     compile_gated_from_cnf_file,
