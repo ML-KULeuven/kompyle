@@ -6,7 +6,6 @@ source "$DEPS_DIR/common.sh"
 
 git clone --depth=1 --branch fix/support-mac-platform \
   https://github.com/IbrahimElk/d4v2
-
 cd d4v2
 
 cmake -S . -B build \
