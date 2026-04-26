@@ -2,7 +2,6 @@
 # Licensed under apachev2
 
 import kompyle as p
-import klay as k
 
 from util import write_cnf
 from pysdd.sdd   import SddManager
@@ -10,7 +9,6 @@ from pysdd.sdd   import SddManager
 from util import (
     assert_exhaustive_equivalence,
     compile_gated,
-    cnf_to_gated_formula
 )
 
 class TestAPI:
@@ -22,14 +20,6 @@ class TestAPI:
         circuit = p.Circuit()
         path = write_cnf(3, [[1, 2], [-1, -2]])
         nptr = p.compile_from_cnf_using_ganak(circuit, path)
-        circuit.set_root(nptr)
-        assert circuit.nb_nodes() > 0
-        assert circuit.nb_root_nodes() == 1
-
-    def test_compile_from_ganak_xor_with_arjun(self):
-        circuit = p.Circuit()
-        path = write_cnf(3, [[1, 2], [-1, -2]])
-        nptr = p.compile_from_cnf_using_ganakarjun(circuit, path)
         circuit.set_root(nptr)
         assert circuit.nb_nodes() > 0
         assert circuit.nb_root_nodes() == 1
@@ -114,13 +104,6 @@ class TestAPI:
     def test_compile_from_ganak_toy1(self):
         circuit = p.Circuit()
         nptr = p.compile_from_cnf_using_ganak(circuit, "./assets/toy/toy1.cnf")
-        circuit.set_root(nptr)
-        assert circuit.nb_nodes() > 0
-        assert circuit.nb_root_nodes() == 1
-
-    def test_compile_from_ganak_and_arjun_toy(self):
-        circuit = p.Circuit()
-        nptr = p.compile_from_cnf_using_ganakarjun(circuit, "./assets/toy/toy.cnf")
         circuit.set_root(nptr)
         assert circuit.nb_nodes() > 0
         assert circuit.nb_root_nodes() == 1

@@ -3,10 +3,17 @@ project(kompyle LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+if(APPLE)
+    set(RPATH_ORIGIN "@loader_path")
+else()
+    set(RPATH_ORIGIN "$ORIGIN")
+endif()
+
 # -----------------------------------------------
 # DEPENDENCIES 
 # -----------------------------------------------
@@ -31,7 +38,6 @@ find_package(GMP            MODULE REQUIRED)
 find_package(cadical        MODULE REQUIRED)
 find_package(cadiback       MODULE REQUIRED)
 
-
 # -----------------------------------------------
 # LIBRARY KOMPYLE
 # -----------------------------------------------
@@ -50,47 +56,38 @@ set(dependencies
 )
 
 add_library(kompyle SHARED
-  src/core.cpp
-  src/dfour.cpp
-  src/gated_formula.cpp
+        src/kcircuit.cc
+        src/d4/compile.cc
+        src/d4/gated_formula.cc
+        src/ganak/circuit_field.cc
+        src/ganak/compile.cc
 )
 
 target_include_directories(kompyle
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:include>
+        PRIVATE
+            ${CMAKE_SOURCE_DIR}/src
 )
 
-
-target_link_libraries(kompyle PUBLIC 
-  ${dependencies}
-  GMP::gmp
+target_link_libraries(kompyle
+        PUBLIC
+            klay
+        PRIVATE
+            cryptominisat5
+            arjun
+            ganak
+            sbva
+            breakid
+            approxmc
+            cadical::cadical
+            cadiback::cadiback
+            md4::d4
+            GMP::gmp
 )
 
-# NOTE(Ibrahim):
-# * all these shared libs are packed together in kompyle site-package
-# as you can see, we bundle klay together as well, duplicate because 
-# we also install a python package klay. It is easier than to link
-# because of macos... and python packages needing to be self-contained
-foreach(lib ${dependencies})
-    get_target_property(lib_loc ${lib} LOCATION)
-    install(FILES ${lib_loc} DESTINATION ${SKBUILD_PLATLIB_DIR}/kompyle)
-endforeach()
-
-set(RPATH_ORIGIN "$ORIGIN")
-if(APPLE)
-  set(RPATH_ORIGIN "@loader_path")
-endif()
-
-set_target_properties(kompyle PROPERTIES
-    INSTALL_RPATH "${RPATH_ORIGIN}"
-)
-
-# NOTE(Ibrahim):
-# puts kompyle.abi3.so into the kompyle/ Python package directory
-# (inside the wheel)
-# also install (lib)kompyle in Python pakcage directory
-# which isn't needed if installed system wide
+set_target_properties(kompyle PROPERTIES INSTALL_RPATH "${RPATH_ORIGIN}")
 install(TARGETS kompyle LIBRARY DESTINATION kompyle)
 
 # -----------------------------------------------
@@ -98,39 +95,43 @@ install(TARGETS kompyle LIBRARY DESTINATION kompyle)
 # -----------------------------------------------
 
 nanobind_add_module(pkompyle
-  STABLE_ABI
-  NOMINSIZE
-  NB_STATIC
-  src/core_bindings.cpp
+        STABLE_ABI
+        NOMINSIZE
+        NB_STATIC
+        src/python/module.cc
+        src/python/circuit_bindings.cc
+        src/python/gated_formula_bindings.cc
+        src/python/compile_bindings.cc
 )
 
-target_link_libraries(pkompyle PRIVATE kompyle klay)
-
-# NOTE(Ibrahim):
-# sketchy, but if installed system wide, this wouldn't be necssary...
-set_target_properties(pkompyle PROPERTIES
-    INSTALL_RPATH "${RPATH_ORIGIN}"
+target_include_directories(pkompyle
+        PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-# NOTE(Ibrahim):
-# puts pkompyle.abi3.so into the kompyle/ Python package directory
-# (inside the wheel)
+target_link_libraries(pkompyle
+        PRIVATE
+            kompyle
+            klay
+)
+
+set_target_properties(pkompyle PROPERTIES INSTALL_RPATH "${RPATH_ORIGIN}")
 install(TARGETS pkompyle LIBRARY DESTINATION kompyle)
 
 # -----------------------------------------------
 # PYTHON KOMPYLE EXTENSION STUBS
 # -----------------------------------------------
-#
-# # https://nanobind.readthedocs.io/en/latest/typing.html#cmake-interface
-# nanobind_add_stub(
-#   pkompyle_stub
-#   MODULE pkompyle
-#   OUTPUT pkompyle.pyi
-#   PYTHON_PATH $<TARGET_FILE_DIR:pkompyle>
-#   DEPENDS pkompyle
-# )
-#
-# install(FILES
-#   "${CMAKE_CURRENT_BINARY_DIR}/pkompyle.pyi"
-#   DESTINATION kompyle
-# )
+
+# https://nanobind.readthedocs.io/en/latest/typing.html#cmake-interface
+nanobind_add_stub(
+  pkompyle_stub
+  MODULE pkompyle
+  OUTPUT pkompyle.pyi
+  PYTHON_PATH $<TARGET_FILE_DIR:pkompyle>
+  DEPENDS pkompyle kompyle
+)
+
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/pkompyle.pyi"
+  DESTINATION kompyle
+)
