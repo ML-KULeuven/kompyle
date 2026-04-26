@@ -140,8 +140,18 @@ jobs:
         env:
           CIBW_BUILD: "cp312-*"
           CIBW_SKIP: "*i686 *ppc64le *s390x *win32* *musllinux*"
-          CIBW_MANYLINUX_X86_64_IMAGE: >-
-            ghcr.io/${{ env.REPO_LC }}/manylinux-deps:latest
+
+          CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/${{ env.REPO_LC }}/manylinux-deps:latest
+
+          CIBW_REPAIR_WHEEL_COMMAND: >
+            auditwheel repair -w {dest_dir} {wheel}
+            --exclude libklay.so
+
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+            pip install "klaycircuits @ git+https://github.com/IbrahimElk/klay.git@feat/sd-dnnf-checker" &&
+            DYLD_LIBRARY_PATH="$(python -c 'import klay, os; print(os.path.dirname(os.path.abspath(klay.__file__)))')"
+            delocate-wheel -w {dest_dir} {wheel} --exclude libklay
+
           CIBW_TEST_EXTRAS: "dev"
           CIBW_TEST_COMMAND: "cd {project} && pytest {project}/tests"
 
