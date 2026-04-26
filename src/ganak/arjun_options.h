@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <string>
 
-#include "arjun/arjun.hpp"
+#include "arjun/arjun.h"
 
 #include "kompyle/options.h"
 
