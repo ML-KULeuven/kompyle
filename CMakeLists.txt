@@ -87,7 +87,10 @@ target_link_libraries(kompyle
             GMP::gmp
 )
 
-set_target_properties(kompyle PROPERTIES INSTALL_RPATH "${RPATH_ORIGIN}")
+set_target_properties(kompyle PROPERTIES
+    INSTALL_RPATH "${RPATH_ORIGIN}"
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+)
 install(TARGETS kompyle LIBRARY DESTINATION kompyle)
 
 # -----------------------------------------------
@@ -115,7 +118,10 @@ target_link_libraries(pkompyle
             klay
 )
 
-set_target_properties(pkompyle PROPERTIES INSTALL_RPATH "${RPATH_ORIGIN}")
+set_target_properties(pkompyle PROPERTIES
+    INSTALL_RPATH "${RPATH_ORIGIN}"
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+)
 install(TARGETS pkompyle LIBRARY DESTINATION kompyle)
 
 # -----------------------------------------------

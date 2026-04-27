@@ -1,0 +1,4 @@
+find_package(md4 CONFIG REQUIRED)
+
+set_target_properties(md4 PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${MD4_INCLUDE_DIRS}")
