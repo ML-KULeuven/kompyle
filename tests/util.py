@@ -20,7 +20,12 @@ import kompyle as p
 # -----------------------------------------------------------------------
 
 def _compile_from_cnf_using_ganak(circuit: p.Circuit, cnf_path: str) -> p.NodePtr:
-    return p.compile_from_cnf_using_ganak(circuit, cnf_path)
+    return p.compile_from_cnf_using_ganak(circuit, cnf_path, arjun_options=None)
+
+
+def _compile_from_cnf_using_ganak_arjun(circuit: p.Circuit, cnf_path: str) -> p.NodePtr:
+    ao = p.ArjunOptions()
+    return p.compile_from_cnf_using_ganak(circuit, cnf_path, arjun_options=ao)
 
 
 def _compile_from_cnf_using_sdd(circuit: p.Circuit, cnf_path: str) -> p.NodePtr:
@@ -38,6 +43,7 @@ def _compile_from_cnf_using_d4v2(circuit: p.Circuit, cnf_path: str) -> p.NodePtr
 
 ALL_COMPILERS: List[Tuple[str, Callable]] = [
     ("from_cnf_using_ganak",        _compile_from_cnf_using_ganak),
+    ("from_cnf_using_ganak_arjun",  _compile_from_cnf_using_ganak_arjun),
     ("from_cnf_using_sdd",          _compile_from_cnf_using_sdd),
     ("from_sdd",                    _compile_from_sdd),
     ("from_cnf_using_d4v2",         _compile_from_cnf_using_d4v2)
