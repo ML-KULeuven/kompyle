@@ -29,15 +29,15 @@ namespace kmpyl {
 //
 // When `arjun_opts` is set, an Arjun independent-support minimisation
 // pre-pass runs before Ganak and the simplified CNF is handed to the
-// counter. When `arjun_opts` is `std::nullopt` (the default), Ganak
+// counter. When `arjun_opts` is `std::nullopt`, Ganak
 // operates directly on the original CNF.
 //
 // Returns the root of the compiled DNNF.
 klay::Node* CompileFromCnfUsingGanak(
     Circuit* circuit,
     const std::string& cnf_file,
-    const GanakOptions& ganak_opts = {},
-    const std::optional<ArjunOptions>& arjun_opts = {});
+    const GanakOptions& ganak_opts,
+    const std::optional<ArjunOptions>& arjun_opts);
 
 // Compiles the DIMACS CNF at `cnf_file` using d4v2.
 //

@@ -142,7 +142,7 @@ void InitCompileBindings(nb::module_& m) {
       "arjun_options"_a = ArjunOptions{},
       "Compile a CNF file using Ganak and add the resulting DNNF nodes into\n"
       "an existing Circuit.\n\n"
-      "When ``arjun_options`` is ``None`` to skip the pre-pass and let Ganak"
+      "When ``arjun_options`` is ``None``, it skips the pre-pass and let Ganak"
       "operate directly on the CNF.\n\n"
       "Parameters\n"
       "----------\n"
