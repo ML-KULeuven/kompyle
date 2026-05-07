@@ -141,6 +141,14 @@ from ._sdd import (  # noqa: E402
     compile_from_cnf_using_sdd,
 )
 
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("kompyle")
+except PackageNotFoundError:
+    __version__ = "0.0.0+unknown"
+
+
 __all__ = [
     # kompyle core
     "Circuit",
