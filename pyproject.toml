@@ -1,7 +1,7 @@
 [build-system]
 requires = ["scikit-build-core >=0.4.3",
             "nanobind >=1.3.2",
-            "klaycircuits @ git+https://github.com/IbrahimElk/klay.git"
+            "klaycircuits @ git+https://github.com/IbrahimElk/klay.git",
             "setuptools-scm>=8",
 
 ]
