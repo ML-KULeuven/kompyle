@@ -14,9 +14,5 @@ cmake -S . -B build \
 cmake --build build -j$NPROC
 $SUDO cmake --install build
 
-# cmake --preset release
-# cmake --build --preset release -j$NPROC
-# $SUDO cmake --install build-release
-
 cd ../..
 ldconfig_if_linux
