@@ -150,9 +150,9 @@ jobs:
             --exclude libklay.so
 
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-            pip install "klaycircuits @ git+https://github.com/IbrahimElk/klay.git@feat/sd-dnnf-checker" &&
+            pip install "klaycircuits" &&
             DYLD_LIBRARY_PATH="$(python -c 'import klay, os; print(os.path.dirname(os.path.abspath(klay.__file__)))')"
-            delocate-wheel -w {dest_dir} {wheel} --exclude libklay
+            delocate-wheel -w {dest_dir} {wheel} --exclude libklay --exclude libgmp
 
           CIBW_TEST_EXTRAS: "dev"
           CIBW_TEST_COMMAND: "cd {project} && pytest {project}/tests"

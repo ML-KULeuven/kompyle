@@ -69,4 +69,10 @@ RUN ln -sf ${PYBIN}/python /usr/local/bin/python && \
     ln -sf ${PYBIN}/pip    /usr/local/bin/pip
 
 WORKDIR /workspace
+
+# RUN pip wheel . --no-build-isolation -w dist/
+# RUN pip install auditwheel
+# RUN auditwheel repair dist/kompyle-*.whl -w dist/repaired/ --exclude libklay.so
+# RUN pip install dist/repaired/kompyle-*.whl
+
 CMD ["/bin/bash"]
