@@ -116,6 +116,7 @@ def compile_from_sdd(circuit, sdd_node) -> NodePtr:
     if sdd_node.is_literal():
         return circuit.literal_node(int(sdd_node.literal))
 
+    # TODO(Ibrahim): use SddIterator ?
     order = _post_order(sdd_node)
 
     _and    = circuit.and_node

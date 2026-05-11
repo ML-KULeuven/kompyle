@@ -255,16 +255,16 @@ klay::Node* CompileFromCnfUsingD4v2(Circuit* circuit,
   auto* init_problem = new d4::ProblemManagerCnf(cnf_file);
   assert(init_problem);
 
-  if (init_problem->isFloat()) {
-    throw std::runtime_error(
-        "This library constructs circuits from cnf files, "
-        "provide unweighted cnf files.");
-  }
-  if (init_problem->getSelectedVar().size()) {
-    throw std::runtime_error(
-        "This library constructs circuits from cnf files, "
-        "provide unprojected cnf files.");
-  }
+  // if (init_problem->isFloat()) {
+  //   throw std::runtime_error(
+  //       "This library constructs circuits from cnf files, "
+  //       "provide unweighted cnf files.");
+  // }
+  // if (init_problem->getSelectedVar().size()) {
+  //   throw std::runtime_error(
+  //       "This library constructs circuits from cnf files, "
+  //       "provide unprojected cnf files.");
+  // }
 
   d4::ConfigurationPeproc preproc_config =
       MakePreprocConfig(opts, d4::PB_CNF);

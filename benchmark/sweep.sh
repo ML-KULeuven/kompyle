@@ -1,16 +1,44 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 Ibrahim El Kaddouri
+# Licensed under apachev2
 set -euo pipefail
 
-NB_VARS=(10 100)
-RATIOS=(2.5 3.0 3.5 4.0 4.5 5.0)
+# 5 * 3 * 4 = 15 * 4 = 60
+NB_VARS=(
+  30
+  35
+  40
+  45
+  50
+  55
+  60
+  65
+  70
+  75
+  80
+)
+RATIOS=(
+  2.5
+  3.0
+  3.5
+  4.0
+  4.5
+  5.0
+)
 SEEDS=(0 1 2 3)
 BACKENDS=(ganak ganak_arjun d4v2 sdd)
-SEMIRINGS=(real log)
-DEVICE=(cpu
-        # cuda  # not eough VRAM...
+SEMIRINGS=(
+  real
+  log
 )
-BATCH=32
-NB_REPEATS=20
+DEVICE=(cpu cuda)
+
+# BATCH=8
+BATCH=32 # not eough VRAM for batch of 32 like klay...
+NB_REPEATS=10
+COLLAPSE=0
+MERGE=0
+VERIFY=0
 
 EXP_ID="${1:-}"
 PHASE="${2:-all}"
@@ -26,7 +54,7 @@ PARALLEL_OPTS=(
     # --halt now,fail=1
     --eta
     --line-buffer
-    --jobs 2
+    --jobs 4
     # --memfree 10G
     # --noswap
     "$@" 
@@ -59,6 +87,9 @@ run_infer() {
           --device    {6}           \
           --batch-size "${BATCH}"   \
           --exp-id "$EXP_ID"        \
+          --collapse "$COLLAPSE"    \
+          --merge "$MERGE"          \
+          --verify "$VERIFY"     \
     ::: "${NB_VARS[@]}"             \
     ::: "${RATIOS[@]}"              \
     ::: "${SEEDS[@]}"               \
@@ -80,12 +111,14 @@ run_experiment() {
           --nb-repeats "${NB_REPEATS}"  \
           --batch-size "${BATCH}"       \
           --exp-id "$EXP_ID"            \
+          --collapse "$COLLAPSE"        \
+          --merge "$MERGE"              \
     ::: "${NB_VARS[@]}"                 \
     ::: "${RATIOS[@]}"                  \
     ::: "${SEEDS[@]}"                   \
     ::: "${BACKENDS[@]}"                \
-    ::: "${SEMIRINGS[@]}"               \
-    ::: "${DEVICE[@]}"
+    ::: "${SEMIRINGS[0]}"               \
+    ::: "${DEVICE[0]}"
 }
 
 case "$PHASE" in

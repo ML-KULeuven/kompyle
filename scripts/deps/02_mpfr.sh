@@ -7,7 +7,7 @@ source "$DEPS_DIR/common.sh"
 wget -q https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.1.tar.xz
 tar xJf mpfr-4.2.1.tar.xz
 cd mpfr-4.2.1
-./configure --enable-cxx --enable-shared
+./configure --enable-cxx --enable-shared --prefix="${PREFIX}"
 make -j$NPROC
 $SUDO make install
 cd ..

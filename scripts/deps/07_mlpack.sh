@@ -8,6 +8,7 @@ git clone --depth=1 --branch 4.7.0 https://github.com/mlpack/mlpack.git
 cd mlpack && mkdir build && cd build
 cmake \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+  -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
   -DBUILD_SHARED_LIBS=ON \
   -DBUILD_CLI_EXECUTABLES=OFF \
   ..

@@ -18,10 +18,18 @@ def _torch_weights(nb_vars: int, semiring: str, device: str, batch_size: int):
     return weights, neg_weights
 
 
-def benchmark_klay_torch(circuit, nb_vars, semiring, nb_repeats=10, device='cpu', batch_size=None):
+def benchmark_klay_torch(circuit,
+                         nb_vars,
+                         semiring,
+                         nb_repeats=10,
+                         device='cpu',
+                         batch_size=None,
+                         collapse=False,
+                         merge=False):
     results = {}
     t1 = perf_counter()
-    circuit_forward = circuit.to_torch_module(semiring).to(device)
+    circuit_forward = circuit.to_torch_module(semiring, collapse=collapse, merge=merge)
+    circuit_forward.to(device)
     results['to_torch'] = perf_counter() - t1
 
     results['sparsity'] = circuit_forward.sparsity(nb_vars)

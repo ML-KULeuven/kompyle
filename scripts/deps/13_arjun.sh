@@ -10,6 +10,7 @@ git clone \
 
 cd arjun && mkdir build && cd build
 cmake \
+  -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
   -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
   -DENABLE_TESTING=OFF \
   -DSTATICCOMPILE=OFF \

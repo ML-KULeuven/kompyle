@@ -7,7 +7,7 @@ source "$DEPS_DIR/common.sh"
 wget -q https://github.com/flintlib/flint/releases/download/v3.2.0-rc1/flint-3.2.0-rc1.tar.gz
 tar xzf flint-3.2.0-rc1.tar.gz
 cd flint-3.2.0-rc1
-./configure --enable-shared
+./configure --enable-shared --prefix="${PREFIX}"
 make -j$NPROC
 $SUDO make install
 cd ..

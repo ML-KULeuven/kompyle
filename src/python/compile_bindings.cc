@@ -28,17 +28,66 @@ void InitCompileBindings(nb::module_& m) {
   // GanakOptions
   // -------------------------------------------------------------------------
 
+  // -------------------------------------------------------------------------
+  // GanakPolarType
+  // -------------------------------------------------------------------------
+
+  nb::enum_<GanakPolarType>(m, "GanakPolarType",
+      "Polarity heuristic used by Ganak when choosing which literal to branch on.")
+    .value("Standard",    GanakPolarType::kStandard,
+           "VSADS-driven polarity (solver default).")
+    .value("Cache",       GanakPolarType::kCache,
+           "Reuse the polarity stored in the component cache. "
+           "Often the best choice for knowledge-compilation workloads.")
+    .value("ForcedFalse", GanakPolarType::kForcedFalse,
+           "Always branch on the negative literal first.")
+    .value("ForcedTrue",  GanakPolarType::kForcedTrue,
+           "Always branch on the positive literal first.")
+    .export_values();
+
+  // -------------------------------------------------------------------------
+  // GanakOptions
+  // -------------------------------------------------------------------------
+
   nb::class_<GanakOptions>(m, "GanakOptions",
       "Solver options forwarded to the Ganak model counter.\n\n")
     .def(nb::init<>())
-    .def_rw("verb",               &GanakOptions::verb,
+    .def_rw("verb",                  &GanakOptions::verb,
             "Verbosity level (0 = silent).")
-    .def_rw("do_chronobt",        &GanakOptions::do_chronobt,
+    .def_rw("do_chronobt",           &GanakOptions::do_chronobt,
             "Enable chronological back-tracking in the SAT solver.")
-    .def_rw("do_use_sat_solver",  &GanakOptions::do_use_sat_solver,
+    .def_rw("do_use_sat_solver",     &GanakOptions::do_use_sat_solver,
             "Allow Ganak to call an external SAT solver for unit propagation.")
-    .def_rw("first_restart",      &GanakOptions::first_restart,
-            "First restart interval (None -> Ganak built-in default).");
+    .def_rw("first_restart",         &GanakOptions::first_restart,
+            "First restart interval in conflicts (None -> Ganak built-in "
+            "default of 20 000). Only meaningful when do_restart is True.")
+    .def_rw("do_restart",            &GanakOptions::do_restart,
+            "Enable cube-and-conquer restarts. Disabled by default; enabling "
+            "can dramatically speed up hard instances.")
+    .def_rw("maximum_cache_size_mb", &GanakOptions::maximum_cache_size_mb,
+            "Maximum component cache size in MB (default 2500). "
+            "Raise on RAM-rich machines to improve cache hit rates.")
+    .def_rw("polar_type",            &GanakOptions::polar_type,
+            "Polarity heuristic (GanakPolarType). "
+            "GanakPolarType.Cache is often best for knowledge compilation.")
+    .def_rw("rdb_keep_used",         &GanakOptions::rdb_keep_used,
+            "Keep recently-used clauses during clause DB reduction. "
+            "Faster at low time limits; loses edge beyond ~2000 s.")
+    .def_rw("do_td",                 &GanakOptions::do_td,
+            "Run the tree-decomposition pre-pass (default True). "
+            "Disable for very simple instances.")
+    .def_rw("td_var_limit",          &GanakOptions::td_var_limit,
+            "Component variable count must be below this to attempt TD.")
+    .def_rw("td_max_weight",         &GanakOptions::td_max_weight,
+            "Flowcutter weight upper bound for the TD heuristic.")
+    .def_rw("td_min_weight",         &GanakOptions::td_min_weight,
+            "Flowcutter weight lower bound for the TD heuristic.")
+    .def_rw("td_divider",            &GanakOptions::td_divider,
+            "Divisor applied to raw treewidth scores.")
+    .def_rw("td_exp_mult",           &GanakOptions::td_exp_mult,
+            "Exponential multiplier applied to treewidth scores.")
+    .def_rw("td_iters",              &GanakOptions::td_iters,
+            "Number of flowcutter iterations (restarts inside the decomposer).");
 
   // -------------------------------------------------------------------------
   // ArjunOptions

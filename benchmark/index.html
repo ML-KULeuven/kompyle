@@ -1,0 +1,277 @@
+<!-- PRODUCED BY CLAUDE AI -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kompyle benchmark</title>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.32.0/plotly.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: #f8f8f6; color: #1a1a1a; font-size: 14px; }
+  header { padding: 1.25rem 2rem; background: #fff; border-bottom: 1px solid #e8e8e4;
+           display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+  header h1 { font-size: 16px; font-weight: 600; }
+  #exp-select { font-size: 13px; padding: 3px 8px; border: 1px solid #ddd;
+                border-radius: 4px; background: #fff; cursor: pointer; font-weight: 500; }
+  #meta { font-size: 12px; color: #888; }
+  #refresh-btn { margin-left: auto; padding: 4px 14px; font-size: 12px; border: 1px solid #ddd;
+                 border-radius: 4px; background: #fff; cursor: pointer; color: #555; }
+  #refresh-btn:hover { background: #f0f0ee; }
+  nav { display: flex; padding: 0 2rem; background: #fff; border-bottom: 1px solid #e8e8e4; }
+  nav button { padding: 0.65rem 1.1rem; border: none; background: none; cursor: pointer;
+               font-size: 13px; color: #666; border-bottom: 2px solid transparent; }
+  nav button.active { color: #1a1a1a; border-bottom-color: #333; font-weight: 500; }
+  .controls { padding: 1rem 2rem 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .controls label { font-size: 12px; color: #888; }
+  .controls select { font-size: 12px; padding: 3px 8px; border: 1px solid #ddd;
+                     border-radius: 4px; background: #fff; cursor: pointer; }
+  .pane { display: none; padding: 1.25rem 2rem 2rem; }
+  .pane.active { display: block; }
+  .chart-wrap { background: #fff; border: 1px solid #e8e8e4; border-radius: 8px;
+                padding: 1rem; margin-bottom: 1rem; }
+  .note { font-size: 12px; color: #888; margin-top: 8px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Kompyle benchmark</h1>
+  <label for="exp-select" style="font-size:12px;color:#888;">exp</label>
+  <select id="exp-select" onchange="loadData()"></select>
+  <span id="meta"></span>
+  <button id="refresh-btn" onclick="refreshExps()">&#8635; refresh</button>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('compile',this)">Compile</button>
+  <button onclick="showTab('infer',this)">Inference</button>
+  <button onclick="showTab('overhead',this)">Overhead</button>
+</nav>
+
+<div id="pane-compile" class="pane active">
+  <div class="chart-wrap"><div id="chart-compile-log" style="height:400px"></div></div>
+  <div class="chart-wrap"><div id="chart-compile-lin" style="height:320px"></div></div>
+  <div class="grid2">
+    <div class="chart-wrap"><div id="chart-nodes" style="height:300px"></div></div>
+    <div class="chart-wrap"><div id="chart-sparsity" style="height:300px"></div></div>
+  </div>
+  <p class="note">Cactus: instances sorted by compile time, cumulative sum on y-axis. Timeouts excluded from curve. Log scale top, linear bottom.</p>
+</div>
+
+<div id="pane-infer" class="pane">
+  <div class="controls">
+    <label>semiring</label>
+    <select id="sel-semiring" onchange="renderInfer()"></select>
+    <label style="margin-left:12px">pass</label>
+    <select id="sel-pass" onchange="renderInfer()">
+      <option value="forward">forward</option>
+      <option value="backward">forward + backward</option>
+    </select>
+  </div>
+  <div class="chart-wrap" style="margin-top:1rem"><div id="chart-infer-log" style="height:400px"></div></div>
+  <div class="chart-wrap"><div id="chart-infer-lin" style="height:320px"></div></div>
+  <p class="note">Cactus: instances sorted by latency per solver. Solid = CPU, dashed = CUDA. Log scale top, linear bottom.</p>
+</div>
+
+<div id="pane-overhead" class="pane">
+  <div class="controls">
+    <label>semiring</label><select id="sel-oh-semiring" onchange="renderOverhead()"></select>
+    <label style="margin-left:12px">device</label><select id="sel-oh-device" onchange="renderOverhead()"></select>
+  </div>
+  <div class="chart-wrap" style="margin-top:1rem"><div id="chart-oh-fractions" style="height:340px"></div></div>
+  <p class="note">Relay layers = passthrough layers (one child, no real reduction).</p>
+</div>
+
+<script>
+const COLORS = ['#3266ad','#1d9e75','#d85a30','#d4537e','#7f77dd','#ba7517'];
+const BASE = {
+  margin: {t:36, r:170, b:52, l:64},
+  paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+  font: {family:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", size:12, color:'#444'},
+  xaxis: {gridcolor:'#efefed', linecolor:'#ddd', zeroline:false},
+  yaxis: {gridcolor:'#efefed', linecolor:'#ddd', zeroline:false},
+  legend: {x:1.02, y:1, xanchor:'left', yanchor:'top', bgcolor:'rgba(0,0,0,0)', borderwidth:0, font:{size:12}},
+};
+const CFG = {responsive:true, displayModeBar:false};
+let DATA = null;
+
+function L(o)   { return Object.assign({}, BASE, o); }
+function LNL(o) { return Object.assign({}, BASE, {margin:{t:36,r:16,b:52,l:64}, showlegend:false}, o); }
+
+function showTab(name, btn) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('pane-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function populateSelect(id, options) {
+  const sel = document.getElementById(id);
+  const prev = sel.value;
+  sel.innerHTML = '';
+  options.forEach(o => { const e=document.createElement('option'); e.value=o; e.textContent=o; sel.appendChild(e); });
+  if (options.includes(prev)) sel.value = prev;
+}
+
+function axisTicks(maxN) {
+  const step = Math.max(1, Math.ceil(maxN / 12));
+  const v = [];
+  for (let i = step; i <= maxN; i += step) v.push(i);
+  return v;
+}
+
+function renderCompile() {
+  if (!DATA) return;
+  const d = DATA.compile_cactus;
+  const backends = Object.keys(d.series);
+
+  const traces = backends.map((b,i) => {
+    const s = d.series[b];
+    if (!s.cumsum.length) return null;
+    const label = s.n_timeout > 0 ? `${b} (${s.n_timeout} t/o)` : b;
+    return {
+      type:'scatter', mode:'lines', name:label,
+      x: s.cumsum.map((_,j)=>j+1), y: s.cumsum,
+      line:{color:COLORS[i%COLORS.length], width:2.2},
+    };
+  }).filter(Boolean);
+
+  const maxN = Math.max(...backends.map(b=>d.series[b].n_solved), 1);
+  const ticks = axisTicks(maxN);
+  const xax = {...BASE.xaxis, title:'Instances', tickvals:ticks, ticktext:ticks.map(String)};
+
+  Plotly.react('chart-compile-log', traces,
+    L({title:{text:'Compile time cactus (log scale)', font:{size:13}}, xaxis:xax,
+       yaxis:{...BASE.yaxis, title:'Cumulative time (ms)', type:'log'}}), CFG);
+  Plotly.react('chart-compile-lin', traces.map(t=>({...t,showlegend:false})),
+    LNL({title:{text:'Compile time cactus (linear scale)', font:{size:13}}, xaxis:xax,
+         yaxis:{...BASE.yaxis, title:'Cumulative time (ms)'}}), CFG);
+
+  renderInstanceProfile();
+}
+
+function renderInstanceProfile() {
+  if (!DATA?.instance_profile) return;
+  const p = DATA.instance_profile;
+
+  const node_traces = p.backends.filter(b=>p.nodes_by_backend[b]?.length).map((b,i)=>({
+    type:'scatter', mode:'lines', name:b,
+    x:p.nodes_by_backend[b].map((_,j)=>j+1), y:p.nodes_by_backend[b],
+    line:{color:COLORS[i%COLORS.length], width:2},
+  }));
+  Plotly.react('chart-nodes', node_traces,
+    L({title:{text:'Nb of nodes (sorted)', font:{size:13}}, margin:{t:36,r:130,b:48,l:64},
+       xaxis:{...BASE.xaxis, title:'Instances'},
+       yaxis:{...BASE.yaxis, title:'Nb of nodes', type:'log'}}), CFG);
+
+  const sp_traces = p.backends.filter(b=>p.sparsity_by_backend[b]?.length).map((b,i)=>({
+    type:'scatter', mode:'lines', name:b, showlegend:false,
+    x:p.sparsity_by_backend[b].map((_,j)=>j+1), y:p.sparsity_by_backend[b],
+    line:{color:COLORS[i%COLORS.length], width:2},
+  }));
+  Plotly.react('chart-sparsity', sp_traces,
+    LNL({title:{text:'Sparsity (sorted descending)', font:{size:13}}, margin:{t:36,r:16,b:48,l:64},
+         xaxis:{...BASE.xaxis, title:'Instances'},
+         yaxis:{...BASE.yaxis, title:'Sparsity', type:'log'}}), CFG);
+}
+
+function renderInfer() {
+  if (!DATA) return;
+  const d = DATA.infer_cactus;
+  const sr   = document.getElementById('sel-semiring').value;
+  const pass = document.getElementById('sel-pass').value;
+
+  const backends = [...new Set(Object.values(d.series).map(s=>s.backend))].sort();
+  const items = [];
+  backends.forEach((b,bi) => {
+    ['cpu','cuda'].forEach(dev => {
+      const s = d.series[`${b}/${sr}/${dev}`];
+      if (s) items.push({s, color:COLORS[bi%COLORS.length], name:`${b} (${dev})`, dash:dev==='cuda'?'dash':'solid'});
+    });
+  });
+
+  function makeTraces(showlegend) {
+    return items.map(({s, color, name, dash}) => {
+      const vals = pass==='forward' ? s.forward_cumsum : s.backward_cumsum;
+      if (!vals?.length) return null;
+      return {type:'scatter', mode:'lines', name, showlegend,
+              x:vals.map((_,i)=>i+1), y:vals,
+              line:{color, dash, width:2.2}};
+    }).filter(Boolean);
+  }
+
+  const maxN = Math.max(...items.map(({s}) => {
+    const v = pass==='forward' ? s.forward_cumsum : s.backward_cumsum;
+    return v?.length||0;
+  }), 1);
+  const ticks = axisTicks(maxN);
+  const xax = {...BASE.xaxis, title:'Instances', tickvals:ticks, ticktext:ticks.map(String)};
+
+  Plotly.react('chart-infer-log', makeTraces(true),
+    L({title:{text:`Inference cactus (log scale)`, font:{size:13}},
+       xaxis:xax, yaxis:{...BASE.yaxis, title:'Cumulative time (ms)', type:'log'}}), CFG);
+  Plotly.react('chart-infer-lin', makeTraces(false),
+    LNL({title:{text:'Inference cactus (linear scale)', font:{size:13}},
+         xaxis:xax, yaxis:{...BASE.yaxis, title:'Cumulative time (ms)'}}), CFG);
+}
+
+function renderOverhead() {
+  if (!DATA) return;
+  const d = DATA.exp_chart;
+  const sr  = document.getElementById('sel-oh-semiring').value;
+  const dev = document.getElementById('sel-oh-device').value;
+  const suffix = `<br>${sr}/${dev}`;
+  const indices = d.keys.map((k,i)=>({k,i})).filter(x=>x.k.endsWith(suffix));
+  const labels  = indices.map(x=>x.k.replace(suffix,''));
+  const pct = arr => indices.map(x=>arr[x.i]!=null?+(arr[x.i]*100).toFixed(1):null);
+
+  Plotly.react('chart-oh-fractions',
+    [{type:'bar',name:'relay layer %',  x:labels,y:pct(d.relay_fraction),     marker:{color:'#3266ad'}}],
+    L({barmode:'group', margin:{t:36,r:170,b:48,l:56},
+       title:{text:`Overhead fractions:  ${sr}, ${dev}`, font:{size:13}},
+       yaxis:{...BASE.yaxis, title:'%', rangemode:'tozero', ticksuffix:'%'}}), CFG);
+}
+
+function render() {
+  const d = DATA;
+  document.getElementById('meta').textContent =
+    `${d.n_compile} compile \u00b7 ${d.n_infer} infer \u00b7 ${d.n_experiment} experiment`;
+  populateSelect('sel-semiring',    d.infer_cactus.semirings);
+  populateSelect('sel-oh-semiring', d.infer_cactus.semirings);
+  populateSelect('sel-oh-device',   d.infer_cactus.devices);
+  renderCompile(); renderInfer(); renderOverhead();
+}
+
+async function refreshExps() {
+  try {
+    const ids = await (await fetch('/api/experiments')).json();
+    const sel = document.getElementById('exp-select');
+    const prev = sel.value;
+    sel.innerHTML = ids.map(id=>`<option value="${id}">exp${String(id).padStart(4,'0')}</option>`).join('');
+    if (ids.map(String).includes(prev)) sel.value = prev;
+    else sel.value = ids[ids.length-1];
+    await loadData();
+  } catch(e) { console.error(e); }
+}
+
+async function loadData() {
+  document.getElementById('meta').textContent = 'loading\u2026';
+  const expId = document.getElementById('exp-select').value;
+  try {
+    const r = await fetch(`/api/results?exp_id=${expId}`);
+    if (!r.ok) throw new Error(await r.text());
+    DATA = await r.json();
+    render();
+  } catch(e) {
+    document.getElementById('meta').textContent = 'error, see console';
+    console.error(e);
+  }
+}
+
+refreshExps();
+</script>
+</body>
+</html>

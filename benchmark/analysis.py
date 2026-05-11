@@ -206,7 +206,9 @@ def run_one_experiment(
     seed:       int,
     backend:    str,
     semiring:   str,
-    device:     str,
+    dev:        str,
+    collapse:   bool = False,
+    merge:      bool = False,
     nb_repeats: int = 20,
     batch_size: int = 32,
 ) -> int:
@@ -223,12 +225,13 @@ def run_one_experiment(
     if not cp.exists():
         print(f"[skip] no compile result: {cp}")
         return 1
+
     cr = json.loads(cp.read_text())
     if cr.get("compile_s") is None:
         print(f"[skip] compile timed-out or errored: {cp}")
         return 1
 
-    out = experiment_result_path(nb_vars, ratio, seed, backend, semiring, device)
+    out = experiment_result_path(exp_id, nb_vars, ratio, seed, backend, semiring, dev)
     if out.exists():
         print(f"[skip] {out}")
         return 0
@@ -242,7 +245,8 @@ def run_one_experiment(
         if backend == "ganak":
             root = p.compile_from_cnf_using_ganak(circuit, cnf, arjun_options=None)
         elif backend == "ganak_arjun":
-            root = p.compile_from_cnf_using_ganak(circuit, cnf, arjun_options=p.ArjunOptions())
+            ao = p.ArjunOptions()
+            root = p.compile_from_cnf_using_ganak(circuit, cnf, arjun_options=ao)
         elif backend == "d4v2":
             root = p.compile_from_cnf_using_d4v2(circuit, cnf)
         elif backend == "sdd":
@@ -259,17 +263,18 @@ def run_one_experiment(
     assert root is not None
     circuit.set_root(root)
 
-    module = circuit.to_torch_module(semiring).to(device)
+    module = circuit.to_torch_module(semiring, collapse=collapse, merge=merge)
+    module.to(dev)
 
     # 1. structural analysis
     structural = analyze_circuit_module(module)
 
-    # 2. profiled timing
-    timing = profiled_forward(
-        module, nb_vars, semiring, device,
-        nb_repeats=nb_repeats,
-        batch_size=batch_size,
-    )
+    # # 2. profiled timing
+    # timing = profiled_forward(
+    #     module, nb_vars, semiring, dev,
+    #     nb_repeats=nb_repeats,
+    #     batch_size=batch_size,
+    # )
 
     result = {
         "nb_vars":       nb_vars,
@@ -277,12 +282,12 @@ def run_one_experiment(
         "seed":          seed,
         "backend":       backend,
         "semiring":      semiring,
-        "device":        device,
+        "device":        dev,
         "circuit_nodes": cr["circuit_nodes"],
         "circuit_edges": cr.get("circuit_edges"),
         "circuit_depth": cr.get("circuit_depth"),
         "structural":    structural,
-        "timing":        timing,
+        # "timing":        timing,
     }
 
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -293,7 +298,105 @@ def run_one_experiment(
         f"  v={nb_vars:3d}  r={ratio:.1f}  s={seed}"
         f"  relay={structural['relay_fraction']:.1%}"
         f"  dummy_edges={structural['dummy_edge_fraction']:.1%}"
-        f"  wall={timing['wall_median_s']*1e3:.2f}ms"
-        f"  scatter={timing['scatter_cpu_frac']:.1%}"
+        # f"  wall={timing['wall_median_s']*1e3:.2f}ms"
+        # f"  scatter={timing['scatter_cpu_frac']:.1%}"
+    )
+    return 0
+
+def run_one_experiment_cnf(
+    exp_id:     int,
+    cnf_path:   str,
+    backend:    str,
+    semiring:   str,
+    dev:        str,
+    collapse:   bool = False,
+    merge:      bool = False,
+    nb_repeats: int  = 20,
+    batch_size: int  = 32,
+) -> int:
+    """
+    Run the dummy-node overhead experiment for a real (non-synthetic) CNF.
+    Result paths are keyed by the CNF file stem.
+    Returns 0 on success, 1 on skip or error.
+    """
+    import kompyle as p
+    from pathlib import Path
+    from pysdd.sdd import SddManager
+    from util import (
+        compile_result_path_cnf,
+        experiment_result_path_cnf,
+        read_nb_vars_from_cnf,
+    )
+
+    stem = Path(cnf_path).stem
+
+    cp = compile_result_path_cnf(exp_id, stem, backend)
+    if not cp.exists():
+        print(f"[skip] no compile result: {cp}")
+        return 1
+
+    cr = json.loads(cp.read_text())
+    if cr.get("compile_s") is None:
+        print(f"[skip] compile timed-out or errored: {cp}")
+        return 1
+
+    out = experiment_result_path_cnf(exp_id, stem, backend, semiring, dev)
+    if out.exists():
+        print(f"[skip] {out}")
+        return 0
+
+    nb_vars = read_nb_vars_from_cnf(cnf_path)
+
+    circuit = p.Circuit()
+    devnull, old_out, old_err = _silence_fd()
+
+    try:
+        if backend == "ganak":
+            root = p.compile_from_cnf_using_ganak(circuit, cnf_path, arjun_options=None)
+        elif backend == "ganak_arjun":
+            ao = p.ArjunOptions()
+            root = p.compile_from_cnf_using_ganak(circuit, cnf_path, arjun_options=ao)
+        elif backend == "d4v2":
+            root = p.compile_from_cnf_using_d4v2(circuit, cnf_path)
+        elif backend == "sdd":
+            mgr, sdd = SddManager.from_cnf_file(cnf_path.encode(), vtree_type=b"balanced")
+            root = p.compile_from_sdd(circuit, sdd)
+        else:
+            raise ValueError(f"Unknown backend: {backend}")
+    except Exception as e:
+        _restore_fd(devnull, old_out, old_err)
+        print(f"ERROR  recompile failed: {e}")
+        return 1
+
+    _restore_fd(devnull, old_out, old_err)
+    assert root is not None
+    circuit.set_root(root)
+
+    module = circuit.to_torch_module(semiring, collapse=collapse, merge=merge)
+    module.to(dev)
+
+    structural = analyze_circuit_module(module)
+
+    result = {
+        "cnf":           cnf_path,
+        "stem":          stem,
+        "backend":       backend,
+        "semiring":      semiring,
+        "device":        dev,
+        "nb_vars":       nb_vars,
+        "circuit_nodes": cr["circuit_nodes"],
+        "circuit_edges": cr.get("circuit_edges"),
+        "circuit_depth": cr.get("circuit_depth"),
+        "structural":    structural,
+    }
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(result, indent=2))
+
+    print(
+        f"OK  {backend:8s}  {semiring:4s}"
+        f"  cnf={Path(cnf_path).name:40s}"
+        f"  relay={structural['relay_fraction']:.1%}"
+        f"  dummy_edges={structural['dummy_edge_fraction']:.1%}"
     )
     return 0

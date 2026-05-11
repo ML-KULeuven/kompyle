@@ -11,6 +11,8 @@ git clone \
 cd cadical
 CXXFLAGS="-fPIC" ./configure --competition
 make -j$NPROC
-$SUDO cp build/libcadical.a /usr/local/lib/
+mkdir -p "${PREFIX}/lib"    "${PREFIX}/include/cadical"
+$SUDO cp build/libcadical.a "${PREFIX}/lib/"
+$SUDO cp src/cadical.hpp    "${PREFIX}/include/cadical/"
 cd ..
 ldconfig_if_linux

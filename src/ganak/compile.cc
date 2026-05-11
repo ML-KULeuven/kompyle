@@ -121,12 +121,36 @@ void RunArjun(ArjunNS::SimplifiedCNF* cnf, const ArjunConf& ac) {
 
 GanakInt::CounterConfiguration MakeGanakConf(const GanakOptions& opts) {
   GanakInt::CounterConfiguration conf;
-  conf.verb              = opts.verb;
-  conf.do_chronobt       = opts.do_chronobt;
-  conf.do_use_sat_solver = opts.do_use_sat_solver;
+
+  // Basic
+  conf.verb                  = opts.verb;
+  conf.do_chronobt           = opts.do_chronobt         ? 1 : 0;
+  conf.do_use_sat_solver     = opts.do_use_sat_solver   ? 1 : 0;
+
+  // Restarts
+  conf.do_restart            = opts.do_restart          ? 1 : 0;
   if (opts.first_restart.has_value()) {
     conf.first_restart = *opts.first_restart;
   }
+
+  // Cache
+  conf.maximum_cache_size_MB = opts.maximum_cache_size_mb;
+
+  // Branching polarity
+  conf.polar_type            = static_cast<int>(opts.polar_type);
+
+  // Clause DB reduction
+  conf.rdb_keep_used         = opts.rdb_keep_used       ? 1 : 0;
+
+  // Tree decomposition
+  conf.do_td                 = opts.do_td               ? 1 : 0;
+  conf.td_varlim             = opts.td_var_limit;
+  conf.td_maxweight          = opts.td_max_weight;
+  conf.td_minweight          = opts.td_min_weight;
+  conf.td_divider            = opts.td_divider;
+  conf.td_exp_mult           = opts.td_exp_mult;
+  conf.td_iters              = opts.td_iters;
+
   return conf;
 }
 

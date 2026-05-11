@@ -15,7 +15,7 @@ else
 fi
 
 cd cereal-1.3.2 && mkdir build && cd build
-cmake -DJUST_INSTALL_CEREAL=ON ..
+cmake -DJUST_INSTALL_CEREAL=ON -DCMAKE_INSTALL_PREFIX="${PREFIX}" ..
 cmake --build . -j$NPROC --config $BUILD_TYPE
 $SUDO cmake --install . --config $BUILD_TYPE
 cd ../..

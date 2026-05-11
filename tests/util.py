@@ -5,14 +5,15 @@ import os
 import random
 import tempfile
 import itertools
-# import subprocess
+import subprocess
 
 from dataclasses import dataclass
 from typing      import Dict, Generator, List, Tuple, Callable
 from pysdd.sdd   import SddManager
 
 import torch
-import kompyle as p
+import kompyle  as p
+import klay     as k
 
 
 # -----------------------------------------------------------------------
@@ -134,7 +135,7 @@ def compile_file(
     circuit.set_root(root)
     circuit.remove_unused_nodes()
 
-    # dot_path = f"/workspace/tmp/debug_n{n_vars}_m{len(clauses)}_s{0}.dot"
+    # dot_path = f"./tmp/debug_cnf_{compiler_id}_n{n_vars}_m{len(clauses)}.dot"
     # k.klay_ext.circuit_to_dot(circuit, dot_path)
     # svg_path = dot_path.replace(".dot", ".svg")
     # subprocess.run(["dot", "-Tsvg", dot_path, "-o", svg_path], check=True)
@@ -233,7 +234,7 @@ def compile_gated(
     circuit.set_root(root)
     circuit.remove_unused_nodes()
 
-    # dot_path = f"/workspace/tmp/debug_n{n_vars}_m{len(clauses)}_s{1}.dot"
+    # dot_path = f"./tmp/debug_gated_d4v2_n{n_vars}_m{len(clauses)}.dot"
     # k.klay_ext.circuit_to_dot(circuit, dot_path)
     # svg_path = dot_path.replace(".dot", ".svg")
     # subprocess.run(["dot", "-Tsvg", dot_path, "-o", svg_path], check=True)
@@ -281,7 +282,7 @@ def compile_gated_from_bc_file(
     #     if actual != expected:
     #         print(f"MISMATCH: {name} expected cid={expected}, got {actual}")
 
-    # dot_path = f"/workspace/tmp/debug_n{len(bc.all_vars)}_s{0}.dot"
+    # dot_path = f"./tmp/debug_bcfile_d4v2_n{len(bc.all_vars)}.dot"
     # k.klay_ext.circuit_to_dot(circuit, dot_path)
     # svg_path = dot_path.replace(".dot", ".svg")
     # subprocess.run(["dot", "-Tsvg", dot_path, "-o", svg_path], check=True)

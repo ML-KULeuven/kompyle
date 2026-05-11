@@ -11,6 +11,7 @@ git clone \
 cd cadiback
 CXX=c++ ./configure
 make -j$NPROC
-$SUDO cp libcadiback.a /usr/local/lib/
+mkdir -p "${PREFIX}/lib"
+$SUDO cp libcadiback.a "${PREFIX}/lib/"
 cd ..
 ldconfig_if_linux

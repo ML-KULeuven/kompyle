@@ -7,7 +7,7 @@ source "$DEPS_DIR/common.sh"
 wget -q https://sourceforge.net/projects/arma/files/armadillo-14.0.2.tar.xz
 tar xf armadillo-14.0.2.tar.xz
 cd armadillo-14.0.2
-./configure
+./configure "-DCMAKE_INSTALL_PREFIX=${PREFIX}" "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}"
 make -j$NPROC
 $SUDO make install
 cd ..

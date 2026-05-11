@@ -70,6 +70,7 @@ RUN ln -sf ${PYBIN}/python /usr/local/bin/python && \
 
 WORKDIR /workspace
 
+# RUN pip install --upgrade pip wheel scikit-build-core "nanobind>=1.3.2"
 # RUN pip wheel . --no-build-isolation -w dist/
 # RUN pip install auditwheel
 # RUN auditwheel repair dist/kompyle-*.whl -w dist/repaired/ --exclude libklay.so

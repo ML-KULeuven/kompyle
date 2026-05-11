@@ -10,6 +10,22 @@
 namespace kmpyl {
 
 // ---------------------------------------------------------------------------
+// GanakPolarType
+// ---------------------------------------------------------------------------
+
+enum class GanakPolarType : int {
+  // Use the solver's default (VSIDS-driven) polarity heuristic.
+  kStandard    = 0,
+  // Reuse the polarity stored in the component cache (usually best for
+  // knowledge compilation workloads).
+  kCache       = 1,
+  // Always branch on the negative literal first.
+  kForcedFalse = 2,
+  // Always branch on the positive literal first.
+  kForcedTrue  = 3,
+};
+
+// ---------------------------------------------------------------------------
 // GanakOptions
 // ---------------------------------------------------------------------------
 
@@ -23,8 +39,52 @@ struct GanakOptions {
   // Allow Ganak to call an external SAT solver for unit propagation.
   bool do_use_sat_solver = true;
 
-  // First restart interval (nullopt -> use Ganak's built-in default).
-  std::optional<int> first_restart;
+  // First restart interval (nullopt -> use Ganak's built-in default of
+  // 20 000 conflicts).  Only meaningful when do_restart is true.
+  std::optional<uint64_t> first_restart;
+
+  // Enable cube-and-conquer restarts.  Ganak defaults to disabled (false);
+  // enabling this can dramatically speed up hard instances.
+  bool do_restart = false;
+
+  // Maximum component cache size in MB.  Ganak's default is 2 500 MB.
+  // Raise this on machines with ample RAM to improve cache hit rates.
+  uint64_t maximum_cache_size_mb = 2500;
+
+  // Polarity heuristic used when branching.
+  // kCache is often the best choice for knowledge-compilation workloads.
+  GanakPolarType polar_type = GanakPolarType::kStandard;
+
+  // Keep recently-used clauses in the clause DB during reduction.
+  // Ganak's own comment notes this is "quite a bit faster on lower
+  // time cut-offs" but loses its edge beyond ~2 000 s.
+  bool rdb_keep_used = false;
+
+  // -------------------------------------------------------------------------
+  // Tree-decomposition (TD) options
+  // -------------------------------------------------------------------------
+
+  // Run the tree-decomposition pre-pass.  Disabling it falls back to pure
+  // VSADS, which is faster on very simple instances.
+  bool do_td = true;
+
+  // Variables in a component must be fewer than this to attempt TD.
+  uint32_t td_var_limit = 150000;
+
+  // Flowcutter weight upper bound for the TD heuristic.
+  double td_max_weight = 60.0;
+
+  // Flowcutter weight lower bound for the TD heuristic.
+  double td_min_weight = 7.0;
+
+  // Divisor applied to raw treewidth scores.
+  double td_divider = 1e3;
+
+  // Exponential multiplier applied to treewidth scores.
+  double td_exp_mult = 1.1;
+
+  // Number of flowcutter iterations (restarts inside the decomposer).
+  int td_iters = 900;
 };
 
 // ---------------------------------------------------------------------------
