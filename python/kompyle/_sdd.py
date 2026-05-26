@@ -179,4 +179,42 @@ def compile_from_cnf_using_sdd(circuit,
         del manager
 
 
-__all__ = ["compile_from_sdd", "compile_from_cnf_using_sdd"]
+def count_from_cnf_using_sdd(cnf_file: str,
+                             *,
+                             vtree_type: str = "balanced") -> int:
+    """Count models of a CNF file using pysdd, without building a klay circuit.
+
+    Args:
+        cnf_file: Path to a DIMACS CNF file.
+        vtree_type: Same default as `compile_from_cnf_using_sdd`.
+
+    Returns:
+        Python int (arbitrary precision).
+
+    Raises:
+        ImportError: If pysdd is not installed.
+    """
+    try:
+        from pysdd.sdd import SddManager
+    except ImportError as e:
+        raise ImportError(
+            "pysdd is required for SDD-based counting. "
+            "Install it with:   pip install kompyle[sdd]"
+        ) from e
+
+    cnf_bytes = cnf_file.encode() if isinstance(cnf_file, str) else cnf_file
+    vt_bytes  = vtree_type.encode() if isinstance(vtree_type, str) else vtree_type
+
+    manager, root = SddManager.from_cnf_file(cnf_bytes, vtree_type=vt_bytes)
+    try:
+        return int(manager.model_count(root))
+    finally:
+        del root
+        del manager
+
+
+__all__ = [
+    "compile_from_sdd",
+    "compile_from_cnf_using_sdd",
+    "count_from_cnf_using_sdd",
+]

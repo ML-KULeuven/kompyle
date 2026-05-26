@@ -9,10 +9,12 @@
 #include <utility>
 #include <vector>
 
-#include "klay/node.h"
-#include "md4/methods/OperationManager.hpp"
+#include <klay/node.h>
+#include <md4/methods/OperationManager.hpp>
 
+#include "d4/d4_stats.h"
 #include "kompyle/kcircuit.h"
+#include "d4/d4_stats.h"
 
 namespace kmpyl {
 
@@ -34,18 +36,36 @@ class KlayCircuitOperation : public d4::Operation<T, klay::Node*> {
 
   ~KlayCircuitOperation() override = default;
 
-  klay::Node* createTop() override { return circuit_->true_node().get(); }
-  klay::Node* createBottom() override { return circuit_->false_node().get(); }
+  klay::Node* createTop() override {
+    ++g_d4_stats_circuit.n_top;
+    D4ScopedTimer t(g_d4_stats_circuit.ns_top);
+    return circuit_->true_node().get();
+  }
 
-  klay::Node* manageBottom() override { return createBottom(); }
-  klay::Node* manageTop(std::vector<d4::Var>&) override { return createTop(); }
+  klay::Node* createBottom() override {
+    ++g_d4_stats_circuit.n_bottom;
+    D4ScopedTimer t(g_d4_stats_circuit.ns_bottom);
+    return circuit_->false_node().get();
+  }
+
+  klay::Node* manageBottom() override {
+    return createBottom();
+  }
+
+  klay::Node* manageTop(std::vector<d4::Var>&) override {
+    return createTop();
+  }
 
   klay::Node* manageBranch(d4::DataBranch<klay::Node*>& e) override {
+    ++g_d4_stats_circuit.n_branch;
+    D4ScopedTimer t(g_d4_stats_circuit.ns_branch);
     return WrapBranch(e);
   }
 
   klay::Node* manageDeterministOr(d4::DataBranch<klay::Node*>* elts,
                                   unsigned size) override {
+    ++g_d4_stats_circuit.n_add;
+    D4ScopedTimer t(g_d4_stats_circuit.ns_add);
     assert(size != 0);
     if (size == 1) return WrapBranch(elts[0]);
 
@@ -59,6 +79,8 @@ class KlayCircuitOperation : public d4::Operation<T, klay::Node*> {
 
   klay::Node* manageDecomposableAnd(klay::Node** elts,
                                     unsigned size) override {
+    ++g_d4_stats_circuit.n_mul;
+    D4ScopedTimer t(g_d4_stats_circuit.ns_mul);
     std::vector<klay::NodePtr> parts;
     parts.reserve(size);
     for (unsigned i = 0; i < size; ++i) {
@@ -72,8 +94,13 @@ class KlayCircuitOperation : public d4::Operation<T, klay::Node*> {
 
   // The count() overrides are intentionally no-ops: this Operation only
   // produces circuits, never numeric counts.
-  T count(klay::Node*&) override { return T(0); }
-  T count(klay::Node*&, std::vector<d4::Lit>&) override { return T(0); }
+  T count(klay::Node*&) override { 
+    return T(0);
+  }
+
+  T count(klay::Node*&, std::vector<d4::Lit>&) override {
+    return T(0);
+  }
 
  private:
   static int D4LitToDimacs(d4::Lit l) {
@@ -81,11 +108,20 @@ class KlayCircuitOperation : public d4::Operation<T, klay::Node*> {
   }
 
   klay::NodePtr MakeTautology(d4::Var v) {
+    ++g_d4_stats_circuit.n_taut;
+    D4ScopedTimer t(g_d4_stats_circuit.ns_taut);
+
     const int dimacs_var = static_cast<int>(v);
     std::vector<klay::NodePtr> lits;
     lits.push_back(circuit_->literal_node(dimacs_var));
     lits.push_back(circuit_->literal_node(-dimacs_var));
     return circuit_->or_node(lits);
+  }
+
+  klay::NodePtr MakeLiteralNode(d4::Lit l) {
+    ++g_d4_stats_circuit.n_lit_node;
+    D4ScopedTimer t(g_d4_stats_circuit.ns_lit_node);
+    return circuit_->literal_node(D4LitToDimacs(l));
   }
 
   klay::Node* WrapBranch(d4::DataBranch<klay::Node*>& b) {
@@ -98,7 +134,8 @@ class KlayCircuitOperation : public d4::Operation<T, klay::Node*> {
       if (!is_gate_var_.empty() && is_gate_var_[l.var()]) {
         parts.push_back(circuit_->true_node());
       } else {
-        parts.push_back(circuit_->literal_node(D4LitToDimacs(l)));
+        // parts.push_back(circuit_->literal_node(D4LitToDimacs(l)));
+        parts.push_back(MakeLiteralNode(l));
       }
     }
 

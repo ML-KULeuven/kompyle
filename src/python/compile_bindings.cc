@@ -1,12 +1,16 @@
 // Copyright (c) 2026 Ibrahim El Kaddouri
 // Licensed under apachev2
 
+#include <Python.h>
+
 #include <optional>
+#include <sstream>
 #include <string>
 
-#include "nanobind/nanobind.h"
-#include "nanobind/stl/optional.h"  // IWYU pragma: keep
-#include "nanobind/stl/string.h"    // IWYU pragma: keep
+#include <boost/multiprecision/gmp.hpp>
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/optional.h>  // IWYU pragma: keep
+#include <nanobind/stl/string.h>    // IWYU pragma: keep
 
 #include "python/bindings.h"
 #include "kompyle/gated_formula.h"
@@ -19,15 +23,28 @@ namespace kmpyl {
 namespace nb = nanobind;
 using nb::literals::operator""_a;
 
+namespace {
+
+// Convert a boost::multiprecision::mpz_int to a Python int (arbitrary
+// precision), via the canonical decimal-string round-trip.
+nb::object MpzToPyInt(const boost::multiprecision::mpz_int& v) {
+  std::ostringstream oss;
+  oss << v;
+  const std::string s = oss.str();
+  PyObject* py = PyLong_FromString(s.c_str(), nullptr, 10);
+  if (py == nullptr) {
+    throw nb::python_error();
+  }
+  return nb::steal(py);
+}
+
+}  // namespace
+
 // ---------------------------------------------------------------------------
 // InitCompileBindings
 // ---------------------------------------------------------------------------
 
 void InitCompileBindings(nb::module_& m) {
-  // -------------------------------------------------------------------------
-  // GanakOptions
-  // -------------------------------------------------------------------------
-
   // -------------------------------------------------------------------------
   // GanakPolarType
   // -------------------------------------------------------------------------
@@ -96,7 +113,8 @@ void InitCompileBindings(nb::module_& m) {
   nb::class_<ArjunOptions>(m, "ArjunOptions",
       "Configuration for the Arjun preprocessor.\n\n"
       "Pass an instance of this class as ``arjun_options`` to "
-      "``compile_from_cnf_using_ganak`` to enable and tune the pre-pass.")
+      "``compile_from_cnf_using_ganak`` (or ``count_from_cnf_using_ganak``) "
+      "to enable and tune the pre-pass.")
     .def(nb::init<>())
     .def_rw("verb",                     &ArjunOptions::verb,
             "Verbosity level (0 = silent).")
@@ -181,8 +199,7 @@ void InitCompileBindings(nb::module_& m) {
       [](Circuit* circuit,
          const std::string& cnf_file,
          const GanakOptions& ganak_opts,
-         const std::optional<ArjunOptions>& arjun_opts) -> klay::NodePtr {
-        // WarnGanakUnsupportedOptions(ganak_opts);
+         const ArjunOptions& arjun_opts) -> klay::NodePtr {
         return CompileFromCnfUsingGanak(circuit, cnf_file,
                                         ganak_opts, arjun_opts);
       },
@@ -259,6 +276,58 @@ void InitCompileBindings(nb::module_& m) {
       "    Path to a BC-S1.2 file.\n"
       "options : D4Options, optional\n"
       "    Solver configuration.");
+
+  // -------------------------------------------------------------------------
+  // Count entry points
+  // -------------------------------------------------------------------------
+
+  m.def(
+      "count_from_cnf_using_ganak",
+      [](const std::string& cnf_file,
+         const GanakOptions& ganak_opts,
+         const ArjunOptions& arjun_opts,
+         bool weighted_counting) -> nb::object {
+        return MpzToPyInt(CountFromCnfUsingGanak(
+            cnf_file, ganak_opts, arjun_opts, weighted_counting));
+        // double count = CountFromCnfUsingGanak(
+        //     cnf_file, ganak_opts, arjun_opts);
+        // return count;
+      },
+      "cnf_file"_a,
+      "ganak_options"_a = GanakOptions{},
+      "arjun_options"_a = ArjunOptions{},
+      "weighted_counting"_a = false,
+      "Count models of a CNF file using Ganak.\n\n"
+      "Parameters\n"
+      "----------\n"
+      "cnf_file : str\n"
+      "    Path to a readable DIMACS CNF file.\n"
+      "ganak_options : GanakOptions, optional\n"
+      "arjun_options : ArjunOptions or None, optional\n"
+      "    ``None`` disables Arjun.\n\n"
+      "Returns\n"
+      "-------\n"
+      "int\n"
+      "    Arbitrary-precision Python int.");
+
+  m.def(
+      "count_from_cnf_using_d4v2",
+      [](const std::string& cnf_file,
+         const D4Options& opts) -> nb::object {
+        const auto count = CountFromCnfUsingD4v2(cnf_file, opts);
+        return MpzToPyInt(count);
+      },
+      "cnf_file"_a, "options"_a = D4Options{},
+      "Count models of a CNF file using d4v2.\n\n"
+      "Parameters\n"
+      "----------\n"
+      "cnf_file : str\n"
+      "    Path to a readable DIMACS CNF file.\n"
+      "options : D4Options, optional\n"
+      "Returns\n"
+      "-------\n"
+      "int\n"
+      "    Arbitrary-precision Python int.");
 }
 
 }  // namespace kmpyl
