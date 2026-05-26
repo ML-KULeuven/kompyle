@@ -122,6 +122,7 @@ target_link_libraries(pkompyle
         PRIVATE
             kompyle
             klay
+            GMP::gmp
 )
 
 set_target_properties(pkompyle PROPERTIES

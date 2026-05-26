@@ -1,9 +1,9 @@
 find_path(GMP_INCLUDE_DIR NAMES gmp.h
-    PATHS /usr/local/include
+    HINTS /usr/local/include
 )
 
 find_library(GMP_LIBRARY NAMES gmp
-    PATHS /usr/local/lib
+    HINTS /usr/local/lib
 )
 
 include(FindPackageHandleStandardArgs)
