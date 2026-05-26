@@ -35,7 +35,7 @@ mkdir -p logs
 # load cluster modules + activate venv
 # -----------------------------------------------------------------
 
-STAGE=compile source "$(dirname "${BASH_SOURCE[0]}")/env.sh"
+STAGE=compile source "${SLURM_SUBMIT_DIR}/scripts/slurm/env.sh"
 
 # -----------------------------------------------------------------
 # decode this task's parameters
@@ -46,7 +46,7 @@ STAGE=compile source "$(dirname "${BASH_SOURCE[0]}")/env.sh"
 : "${EXP_ID:?EXP_ID must be set}"
 : "${BENCHMARK_DIR:?BENCHMARK_DIR must be set}"
 
-cli_args="$("$(dirname "${BASH_SOURCE[0]}")/_decode_task.sh")"
+cli_args="$("${SLURM_SUBMIT_DIR}/scripts/slurm/_decode_task.sh")"
 
 echo "Task ${SLURM_ARRAY_TASK_ID} (offset ${OFFSET:-0})  stage=${BENCH_STAGE}: ${cli_args}"
 

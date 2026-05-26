@@ -20,10 +20,10 @@ set -euo pipefail
 mkdir -p logs
 
 # Load Python + define $VENV.
-STAGE=build source "$(dirname "${BASH_SOURCE[0]}")/env.sh"
+STAGE=build source "${SLURM_SUBMIT_DIR}/scripts/slurm/env.sh"
 
 # Pin the kompyle version here. Bump and re-sbatch when upgrading.
-KOMPYLE_VERSION="${KOMPYLE_VERSION:-0.0.1.dev110}"
+KOMPYLE_VERSION="${KOMPYLE_VERSION:-0.0.1.dev115}"
 
 # Re-create the venv from scratch so version bumps can't leave stale deps.
 rm -rf "${VENV}"
@@ -40,7 +40,6 @@ pip install "kompyle==${KOMPYLE_VERSION}" \
     --extra-index-url https://pypi.org/simple
 
 # Benchmark-only extras.
-pip install pysdd numpy pandas matplotlib tqdm \
-            torch --index-url https://download.pytorch.org/whl/cpu
+pip install pysdd numpy pandas matplotlib tqdm torch
 
 echo "=== build complete (kompyle ${KOMPYLE_VERSION}) ==="

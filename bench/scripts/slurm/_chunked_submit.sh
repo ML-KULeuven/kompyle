@@ -32,6 +32,12 @@ chunked_submit() {
     [[ -n "${slurm_file}" && -n "${total}" && -n "${mem}" && -n "${export_}" ]] \
         || { echo "ERROR: missing required arg" >&2; return 1; }
 
+    local qos_limit="${KOMPYLE_QOS_LIMIT:-480}"
+    local sleep_s="${KOMPYLE_QUEUE_POLL_S:-60}"
+    local cluster_arg=()
+    [[ -n "${SBATCH_CLUSTERS:-}" ]] \
+        && cluster_arg=(--clusters="${SBATCH_CLUSTERS}")
+
     local prev_job=""
     local offset=0
     local n_chunks=0
@@ -41,6 +47,18 @@ chunked_submit() {
         local remaining=$(( total - offset ))
         local n=$(( remaining < chunk ? remaining : chunk ))
         local last=$(( n - 1 ))
+
+        # Wait until queue has room for `n` more jobs.
+        while :; do
+            local queued
+            queued=$(squeue "${cluster_arg[@]}" -u "$USER" \
+                            -h -t PD,R -r 2>/dev/null | wc -l)
+            if (( queued + n <= qos_limit )); then
+                break
+            fi
+            echo "  queue at ${queued}, need room for ${n} (limit ${qos_limit}); sleeping ${sleep_s}s..."
+            sleep "${sleep_s}"
+        done
 
         local dep=()
         if [[ -n "${prev_job}" ]]; then
