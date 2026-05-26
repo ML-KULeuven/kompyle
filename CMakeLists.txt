@@ -22,17 +22,18 @@ find_package(Python 3.10
         REQUIRED COMPONENTS Interpreter Development.Module
         OPTIONAL_COMPONENTS Development.SABIModule)
 
+find_package(Boost CONFIG REQUIRED COMPONENTS program_options)
+
 find_package(nanobind       CONFIG REQUIRED)
-find_package(Boost          CONFIG REQUIRED)
+find_package(klay           CONFIG REQUIRED)
 
 find_package(cryptominisat5 MODULE REQUIRED)
 find_package(arjun          MODULE REQUIRED)
 find_package(ganak          MODULE REQUIRED)
-find_package(sbva           CONFIG REQUIRED)
-find_package(breakid        CONFIG REQUIRED)
-find_package(approxmc       CONFIG REQUIRED)
-find_package(klay           CONFIG REQUIRED)
-find_package(md4            CONFIG REQUIRED)
+find_package(sbva           MODULE REQUIRED)
+find_package(breakid        MODULE REQUIRED)
+find_package(approxmc       MODULE REQUIRED)
+find_package(md4            MODULE REQUIRED)
 
 find_package(GMP            MODULE REQUIRED)
 find_package(cadical        MODULE REQUIRED)
@@ -47,9 +48,9 @@ set(dependencies
         cryptominisat5
         arjun
         ganak
-        sbva
-        breakid
-        approxmc
+        sbva::sbva
+        breakid::breakid
+        approxmc::approxmc
         cadical::cadical
         cadiback::cadiback
         md4::d4
@@ -59,8 +60,11 @@ add_library(kompyle SHARED
         src/kcircuit.cc
         src/d4/compile.cc
         src/d4/gated_formula.cc
-        src/ganak/circuit_field.cc
+        src/d4/internal.cc
+        src/d4/d4_stats.cc
+        # src/ganak/circuit_field.cc
         src/ganak/compile.cc
+        src/ganak/internal.cc
 )
 
 target_include_directories(kompyle
@@ -78,13 +82,14 @@ target_link_libraries(kompyle
             cryptominisat5
             arjun
             ganak
-            sbva
-            breakid
-            approxmc
+            sbva::sbva
+            breakid::breakid
+            approxmc::approxmc
             cadical::cadical
             cadiback::cadiback
             md4::d4
             GMP::gmp
+            Boost::program_options
 )
 
 set_target_properties(kompyle PROPERTIES
@@ -105,6 +110,7 @@ nanobind_add_module(pkompyle
         src/python/circuit_bindings.cc
         src/python/gated_formula_bindings.cc
         src/python/compile_bindings.cc
+        src/python/stats_bindings.cc
 )
 
 target_include_directories(pkompyle

@@ -63,6 +63,12 @@ jobs:
           push: true
           tags: ghcr.io/${{ env.REPO_LC }}/manylinux-deps:latest
 
+      - name: Prepare macos dependency paths
+        if: matrix.platform == 'macos'
+        run: |
+          sudo mkdir -p /usr/local/lib /usr/local/include /usr/local/bin
+          sudo chown -R $USER /usr/local/lib /usr/local/include /usr/local/bin
+
       - name: Build macos dependencies
         if: matrix.platform == 'macos'
         run: bash scripts/build_deps.sh
