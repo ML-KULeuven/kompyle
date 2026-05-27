@@ -9,13 +9,13 @@
 #   bash scripts/slurm/submit_real.sh <exp_id> [stage] [mem_gb]
 #
 # stage:   compile (default) | count
-# mem_gb:  default 32
+# mem_gb:  default 4G
 
 set -euo pipefail
 
 EXP_ID="${1:?Usage: $0 <exp_id> [stage] [mem_gb]}"
 BENCH_STAGE="${2:-compile}"
-MEM_GB="${3:-32}"
+MEM_GB="${3:-4}"
 
 case "${BENCH_STAGE}" in
     compile|count) ;;
