@@ -21,12 +21,13 @@ import klay     as k
 # -----------------------------------------------------------------------
 
 def _compile_from_cnf_using_ganak(circuit: p.Circuit, cnf_path: str) -> p.NodePtr:
-    return p.compile_from_cnf_using_ganak(circuit, cnf_path, arjun_options=None)
+    aopt = p.ArjunOptions()
+    aopt.do_arjun = False
+    return p.compile_from_cnf_using_ganak(circuit, cnf_path, arjun_options=aopt)
 
 
 def _compile_from_cnf_using_ganak_arjun(circuit: p.Circuit, cnf_path: str) -> p.NodePtr:
-    ao = p.ArjunOptions()
-    return p.compile_from_cnf_using_ganak(circuit, cnf_path, arjun_options=ao)
+    return p.compile_from_cnf_using_ganak(circuit, cnf_path)
 
 
 def _compile_from_cnf_using_sdd(circuit: p.Circuit, cnf_path: str) -> p.NodePtr:

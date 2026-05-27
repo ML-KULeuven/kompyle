@@ -26,8 +26,8 @@ shift 2 2>/dev/null || shift $#
 
 # Memory / timeout knobs
 : "${MEM_MB:=5000}"
-: "${TIMEOUT:=10}"
-: "${COUNT_TIMEOUT:=10}"
+: "${TIMEOUT:=300}"
+: "${COUNT_TIMEOUT:=300}"
 
 PARALLEL_OPTS=(
     --eta

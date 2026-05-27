@@ -62,7 +62,7 @@ add_library(kompyle SHARED
         src/d4/gated_formula.cc
         src/d4/internal.cc
         src/d4/d4_stats.cc
-        # src/ganak/circuit_field.cc
+        src/ganak/circuit_field.cc
         src/ganak/compile.cc
         src/ganak/internal.cc
 )

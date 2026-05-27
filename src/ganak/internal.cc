@@ -122,6 +122,12 @@ void ConfigureArjunForCounting(
     sampl_vars.reserve(cnf->nVars());
     for (uint32_t i = 0; i < cnf->nVars(); ++i) sampl_vars.push_back(i);
     cnf->set_sampl_vars(sampl_vars);
+  } else {
+    const std::set<uint32_t> tmp(cnf->sampl_vars.begin(), cnf->sampl_vars.end());
+    if (tmp.size() == cnf->nVars())
+      etof_conf.all_indep = true;
+    if (!cnf->get_opt_sampl_vars_set())
+      cnf->set_opt_sampl_vars(cnf->sampl_vars);
   }
 
   if (cnf->fg->weighted()) {
@@ -138,18 +144,28 @@ void ConfigureArjunForCounting(
 void RunArjun(ArjunNS::SimplifiedCNF* cnf, const ArjunConf& ac) {
   ArjunNS::Arjun arjun;
   arjun.set_verb(ac.arjun_verb);
+  arjun.set_or_gate_based(ac.arjun_gates);
+  arjun.set_xor_gates_based(ac.arjun_gates);
+  arjun.set_ite_gate_based(ac.arjun_gates);
+  arjun.set_irreg_gate_based(ac.arjun_gates);
   arjun.set_probe_based(ac.do_probe_based);
   arjun.set_simp(ac.arjun_simp_level);
   arjun.set_backw_max_confl(ac.arjun_backw_maxc);
   arjun.set_oracle_find_bins(ac.arjun_oracle_find_bins);
   arjun.set_cms_glob_mult(ac.arjun_cms_glob_mult);
   arjun.set_extend_max_confl(ac.arjun_extend_max_confl);
-  arjun.set_extend_ccnr(ac.arjun_extend_ccnr);
   arjun.set_autarkies(ac.arjun_autarkies);
 
-  // arjun.standalone_minimize_indep(*cnf, ac.etof_conf.all_indep);
+  if (ac.do_pre_backbone)
+    arjun.standalone_backbone(*cnf);
+
+  arjun.standalone_minimize_indep(*cnf, ac.etof_conf.all_indep);
+  arjun.set_extend_ccnr(ac.arjun_extend_ccnr);
+
   if (cnf->get_sampl_vars().size() >= ac.arjun_further_min_cutoff && ac.do_puura) {
     arjun.standalone_elim_to_file(*cnf, ac.etof_conf, ac.simp_conf);
+  } else {
+    cnf->renumber_sampling_vars_for_ganak();
   }
 }
 

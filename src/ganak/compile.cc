@@ -89,8 +89,10 @@ klay::Node* CompileFromCnfUsingGanak(
     }
     const uint32_t indep_end = next_gv;
 
-    for (uint32_t v : all_active) {
-      if (!remaining_sampl_set.count(v) && cweights.count(v)) {
+    for (uint32_t v : cnf.opt_sampl_vars) {
+      if (!remaining_sampl_set.count(v) && all_active.count(v)) {
+    // for (uint32_t v : all_active) {
+    //   if (!remaining_sampl_set.count(v) && cweights.count(v)) {
         var_to_ganak[v] = next_gv++;
       }
     }
@@ -257,8 +259,10 @@ boost::multiprecision::mpz_int CountFromCnfUsingGanak(
     }
     const uint32_t indep_end = next_gv;
 
-    for (uint32_t v : all_active) {
-      if (!remaining_sampl_set.count(v) && cweights.count(v)) {
+    for (uint32_t v : cnf.opt_sampl_vars) {
+      if (!remaining_sampl_set.count(v) && all_active.count(v)) {
+    // for (uint32_t v : all_active) {
+    //   if (!remaining_sampl_set.count(v) && cweights.count(v)) {
         var_to_ganak[v] = next_gv++;
       }
     }
