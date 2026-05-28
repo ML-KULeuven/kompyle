@@ -6,7 +6,7 @@
 # under the cluster's per-submission array limit (wice QOS allows 264).
 # Each subsequent chunk depends on the previous one finishing.
 #
-# Usage (from another script):
+# Usage:
 #   source "scripts/slurm/_chunked_submit.sh"
 #   chunked_submit  --slurm-file <path> \
 #                   --total <N> \
@@ -48,7 +48,7 @@ chunked_submit() {
         local n=$(( remaining < chunk ? remaining : chunk ))
         local last=$(( n - 1 ))
 
-        # Wait until queue has room for `n` more jobs.
+        # Wait until queue has room for `n` more jobs!
         while :; do
             local queued
             queued=$(squeue "${cluster_arg[@]}" -u "$USER" \
@@ -65,7 +65,6 @@ chunked_submit() {
             dep=(--dependency="afterany:${prev_job}")
         fi
 
-        # shellcheck disable=SC2086  # array expansion handles dep correctly
         prev_job=$(sbatch                                       \
             --array=0-${last}                                   \
             --mem="${mem}"                                      \

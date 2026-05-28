@@ -16,6 +16,6 @@ export async function listExperiments() {
     return getJSON('/api/experiments');
 }
 
-export async function fetchResults(expId) {
-    return getJSON(`/api/results?exp_id=${encodeURIComponent(expId)}`);
+export async function fetchResults(expName) {
+    return getJSON(`/api/results?exp=${encodeURIComponent(expName)}`);
 }

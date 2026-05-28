@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Ibrahim El Kaddouri
 // Licensed under apachev2
 //
-// Inference pane: cactus of forward (or forward+backward) latency,
-// one trace per (backend x device). Reactive to two selects:
-// #sel-semiring and #sel-pass.
+// Inference pane
+// Cactus of forward (or forward+backward) latency,
+// one trace per (backend x device).
 
 import {
     COLORS, CFG, layout, layoutNoLegend,
@@ -67,12 +67,12 @@ export function renderInfer(data) {
     Plotly.react('chart-infer-log', buildTraces(items, pass, true), layout({
         title: { text: 'Inference cactus (log scale)', font: { size: 13 } },
         xaxis: xax,
-        yaxis: { ...baseYAxis(), title: 'Cumulative time (ms)', type: 'log' },
+        yaxis: { ...baseYAxis(), title: 'Cumulative time (s)', type: 'log' },
     }), CFG);
 
     Plotly.react('chart-infer-lin', buildTraces(items, pass, false), layoutNoLegend({
         title: { text: 'Inference cactus (linear scale)', font: { size: 13 } },
         xaxis: xax,
-        yaxis: { ...baseYAxis(), title: 'Cumulative time (ms)' },
+        yaxis: { ...baseYAxis(), title: 'Cumulative time (s)' },
     }), CFG);
 }

@@ -1,11 +1,10 @@
 // Copyright (c) 2026 Ibrahim El Kaddouri
 // Licensed under apachev2
 //
-// Compile pane: 4 charts.
-//   1. cactus, log scale  (legend on the right)
-//   2. cactus, linear     (no legend, shares the x-axis)
-//   3. circuit-nodes per backend
-//   4. sparsity per backend
+//  * cactus, log scale
+//  * cactus, linear
+//  * circuit-nodes per backend
+//  * sparsity per backend
 
 import {
     COLORS, CFG, layout, layoutNoLegend,
@@ -17,7 +16,7 @@ function compileCactusTraces(d) {
     return backends.map((b, i) => {
         const s = d.series[b];
         if (!s.cumsum.length) return null;
-        const label = s.n_timeout > 0 ? `${b} (${s.n_timeout} t/o)` : b;
+        const label = s.n_failed > 0 ? `${b} (${s.n_failed} t/o)` : b;
         return {
             type: 'scatter',
             mode: 'lines',
@@ -38,7 +37,7 @@ function renderCompileCactus(d) {
     Plotly.react('chart-compile-log', traces, layout({
         title: { text: 'Compile time cactus (log scale)', font: { size: 13 } },
         xaxis: xax,
-        yaxis: { ...baseYAxis(), title: 'Cumulative time (ms)', type: 'log' },
+        yaxis: { ...baseYAxis(), title: 'Cumulative time (s)', type: 'log' },
     }), CFG);
 
     Plotly.react('chart-compile-lin',
@@ -46,7 +45,7 @@ function renderCompileCactus(d) {
         layoutNoLegend({
             title: { text: 'Compile time cactus (linear scale)', font: { size: 13 } },
             xaxis: xax,
-            yaxis: { ...baseYAxis(), title: 'Cumulative time (ms)' },
+            yaxis: { ...baseYAxis(), title: 'Cumulative time (s)' },
         }), CFG);
 }
 
@@ -84,6 +83,11 @@ function renderInstanceProfile(p) {
 
 export function renderCompile(data) {
     if (!data) return;
-    renderCompileCactus(data.compile_cactus);
+    if (data.combined_cactus) {
+        renderCompileCactus({
+            series:   data.combined_cactus.compile_series,
+            backends: data.combined_cactus.compile_backends,
+        });
+    }
     if (data.instance_profile) renderInstanceProfile(data.instance_profile);
 }

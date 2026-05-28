@@ -21,9 +21,6 @@
 # Writes one line of `--flag value` pairs to stdout:
 #   synth: --nb-vars N --ratio R --seed S --backend B
 #   real:  --cnf PATH --backend B
-#
-# Kept as a separate helper so the unified solver.slurm body stays
-# trivial and the decoding can be unit-tested out of band.
 
 set -euo pipefail
 

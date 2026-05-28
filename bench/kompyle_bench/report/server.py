@@ -6,8 +6,8 @@ Routes:
 
 * ``GET /`` or ``/index.html`` -> ``web/index.html``
 * ``GET /static/...``          -> file from ``web/static/``
-* ``GET /api/experiments``     -> ``[exp_id, ...]``
-* ``GET /api/results?exp_id=N``-> aggregated chart data for experiment N
+* ``GET /api/experiments``     -> ``["name1", "name2", ...]``
+* ``GET /api/results?exp=NAME``-> aggregated chart data for experiment NAME
 
 Result JSON is re-read from disk on every request so a running browser
 session picks up new completions when you refresh.
@@ -21,7 +21,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from kompyle_bench.report.aggregate import aggregate
-from kompyle_bench.report.load import latest_exp_id, list_exp_ids
+from kompyle_bench.report.load import latest_exp_name, list_exp_names
 
 
 _MIME = {
@@ -36,7 +36,7 @@ _MIME = {
 }
 
 
-def _make_handler(benchmark_dir: Path, web_dir: Path, default_exp_id: int | None):
+def _make_handler(benchmark_dir: Path, web_dir: Path, default_exp: str | None):
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, fmt, *args):  # pyright:ignore
             pass
@@ -61,11 +61,11 @@ def _make_handler(benchmark_dir: Path, web_dir: Path, default_exp_id: int | None
 
         # request parsing
 
-        def _exp_id_from_query(self) -> int | None:
+        def _exp_name_from_query(self) -> str | None:
             qs = parse_qs(urlparse(self.path).query)
-            if "exp_id" in qs:
-                return int(qs["exp_id"][0])
-            return default_exp_id or latest_exp_id(benchmark_dir)
+            if "exp" in qs:
+                return qs["exp"][0]
+            return default_exp or latest_exp_name(benchmark_dir)
 
         def _url_path(self) -> str:
             return urlparse(self.path).path
@@ -79,7 +79,7 @@ def _make_handler(benchmark_dir: Path, web_dir: Path, default_exp_id: int | None
             if path.startswith("/static/"):
                 return self._serve_static(path[len("/static/"):])
             if path == "/api/experiments":
-                return self._send_json(list_exp_ids(benchmark_dir))
+                return self._send_json(list_exp_names(benchmark_dir))
             if path == "/api/results":
                 return self._serve_results()
             self._send_error(404, "not found")
@@ -101,13 +101,13 @@ def _make_handler(benchmark_dir: Path, web_dir: Path, default_exp_id: int | None
             self._send(200, mime, target.read_bytes(), cache=True)
 
         def _serve_results(self) -> None:
-            eid = self._exp_id_from_query()
-            if eid is None:
+            name = self._exp_name_from_query()
+            if name is None:
                 return self._send_error(404, "no experiment folders found")
             try:
-                data = aggregate(benchmark_dir, eid)
+                data = aggregate(benchmark_dir, name)
                 self._send_json(data)
-                print(f"  /api/results → exp{eid:04d}"
+                print(f"  /api/results → {name}"
                       f"  ({data['n_compile']} compile,"
                       f" {data['n_count']} count,"
                       f" {data['n_infer']} infer,"
@@ -123,11 +123,11 @@ def serve(
     benchmark_dir: Path,
     web_dir: Path,
     port: int,
-    exp_id: int | None,
+    exp: str | None,
 ) -> None:
-    handler = _make_handler(benchmark_dir, web_dir, exp_id)
+    handler = _make_handler(benchmark_dir, web_dir, exp)
     httpd = HTTPServer(("", port), handler)
-    desc = f"exp{exp_id:04d}" if exp_id else "latest (auto-detected per request)"
+    desc = exp if exp else "latest (auto-detected per request)"
     print(f"Serving at http://localhost:{port}  [{desc}]")
     print("Refresh the browser page to pick up new results.")
     print("Ctrl-C to stop.\n")

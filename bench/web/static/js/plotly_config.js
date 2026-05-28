@@ -1,8 +1,7 @@
 // Copyright (c) 2026 Ibrahim El Kaddouri
 // Licensed under apachev2
 //
-// Plotly defaults shared by every pane. Keep the design tokens here so
-// changing the look of every chart at once is a single-file edit.
+// Plotly defaults shared by every pane.
 
 export const COLORS = [
     '#3266ad', '#1d9e75', '#d85a30',

@@ -1,17 +1,5 @@
 // Copyright (c) 2026 Ibrahim El Kaddouri
 // Licensed under apachev2
-//
-// Frontend entry point. Wires together:
-//   * the API client (api.js)
-//   * generic DOM helpers (ui.js)
-//   * the four pane modules:
-//       compile_pane, infer_pane, solver_overhead_pane, overhead_pane
-//
-// Lifecycle:
-//   1. on load -> refreshExps() -> fetch /api/experiments, populate the
-//      exp picker, then loadData().
-//   2. loadData() fetches /api/results?exp_id=... and renders all panes.
-//   3. Each pane re-renders on its own when its filter selects change.
 
 import { fetchResults, listExperiments } from './api.js';
 import { onSelectChange, populateSelect, setMeta, setupTabs } from './ui.js';
@@ -25,10 +13,18 @@ let DATA = null;
 
 function renderAll() {
     if (!DATA) return;
-    setMeta(
-        `${DATA.n_compile} compile · ${DATA.n_count ?? 0} count`
-        + ` · ${DATA.n_infer} infer · ${DATA.n_experiment} experiment`
-    );
+    const meta = DATA.meta;
+    const metaParts = [
+        `${DATA.n_compile} compile   ${DATA.n_count ?? 0} count`
+        + `   ${DATA.n_infer} infer   ${DATA.n_experiment} experiment`,
+    ];
+    if (meta) {
+        const desc = Object.entries(meta)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join('   ');
+        if (desc) metaParts.push(desc);
+    }
+    setMeta(metaParts.join('   |   '));
     populateSelect('sel-semiring',    DATA.infer_cactus.semirings);
     populateSelect('sel-oh-semiring', DATA.infer_cactus.semirings);
     populateSelect('sel-oh-device',   DATA.infer_cactus.devices);
@@ -40,10 +36,10 @@ function renderAll() {
 }
 
 async function loadData() {
-    setMeta('loading\u2026');
-    const expId = document.getElementById('exp-select').value;
+    setMeta('loading...');
+    const expName = document.getElementById('exp-select').value;
     try {
-        DATA = await fetchResults(expId);
+        DATA = await fetchResults(expName);
         renderAll();
     } catch (e) {
         setMeta('error, see console');
@@ -53,13 +49,13 @@ async function loadData() {
 
 async function refreshExps() {
     try {
-        const ids = await listExperiments();
+        const names = await listExperiments();
         const sel = document.getElementById('exp-select');
         const prev = sel.value;
-        sel.innerHTML = ids
-            .map(id => `<option value="${id}">exp${String(id).padStart(4, '0')}</option>`)
+        sel.innerHTML = names
+            .map(name => `<option value="${name}">${name}</option>`)
             .join('');
-        sel.value = ids.map(String).includes(prev) ? prev : ids[ids.length - 1];
+        sel.value = names.includes(prev) ? prev : (names[names.length - 1] ?? '');
         await loadData();
     } catch (e) {
         console.error(e);

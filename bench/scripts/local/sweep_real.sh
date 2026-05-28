@@ -2,9 +2,8 @@
 # Copyright (c) 2026 Ibrahim El Kaddouri
 # Licensed under apachev2
 #
-# Local real-instance sweep driver (workstation, not HPC).
-# Iterates the problems listed in assets/all_problems.txt instead of the
-# synthetic grid, everything else mirrors sweep_synth.sh.
+# Local real-instance sweep driver
+# Iterates the problems listed in assets/all_problems.txt
 #
 # Usage:
 #   bash scripts/local/sweep_real.sh <exp_id> [phase] [-- extra parallel opts]
@@ -27,9 +26,8 @@ mapfile -t PROBLEMS < "${PROBLEMS_FILE}"
 log "Problems: ${#PROBLEMS[@]}  Backends: ${#BACKENDS[@]}"
 log "Total compile tasks: $(( ${#PROBLEMS[@]} * ${#BACKENDS[@]} ))"
 
-# Memory / timeout knobs (compile only! other stages don't have them).
 : "${MEM_MB:=5000}"
-: "${TIMEOUT:=10}"
+: "${TIMEOUT:=300}"
 
 PARALLEL_OPTS=(
     --eta
@@ -130,8 +128,7 @@ run_infer() {
             --device      {4}                      \
             --batch-size  "${BATCH}"               \
             --nb-repeats  "${NB_REPEATS}"          \
-            --exp-id      "${EXP_ID}"              \
-            --verify      "${VERIFY}"
+            --exp-id      "${EXP_ID}"
 }
 
 run_experiment() {

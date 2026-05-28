@@ -1,8 +1,9 @@
 // Copyright (c) 2026 Ibrahim El Kaddouri
 // Licensed under apachev2
 //
-// Overhead pane: a single bar chart of relay-layer fraction per
-// backend, filtered by the (semiring, device) the user picked.
+// Overhead pane 
+// A single bar chart of relay-layer fraction per backend,
+// filtered by the (semiring, device).
 
 import { CFG, layout, baseYAxis } from './plotly_config.js';
 
@@ -23,7 +24,6 @@ export function renderOverhead(data) {
     const device   = document.getElementById('sel-oh-device').value;
     const suffix   = `<br>${semiring}/${device}`;
 
-    // Indices of keys matching the current (semiring, device) suffix.
     const matched = d.keys
         .map((k, i) => ({ k, i }))
         .filter(({ k }) => k.endsWith(suffix));

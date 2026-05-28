@@ -2,9 +2,7 @@
 # Licensed under apachev2
 """Read experiment result JSON files into row dicts.
 
-The directory layout is::
-
-    exps/exp<NNNN>/results/
+    exps/<name>/results/
         compile/<backend>/<key>.json
         infer/<backend>_<semiring>_<device>/<key>.json
         experiment/dummy_overhead/<backend>_<semiring>_<device>/<key>.json
@@ -17,27 +15,25 @@ from __future__ import annotations
 
 import json
 import re
+import yaml
 import statistics
 from pathlib import Path
 
+def list_exp_names(benchmark_dir: Path) -> list[str]:
+    """Return all experiment names, sorted lexicographically."""
+    names = [
+        p.name
+        for p in benchmark_dir.glob("exps/*")
+        if p.is_dir()
+    ]
+    return sorted(names)
 
-def list_exp_ids(benchmark_dir: Path) -> list[int]:
-    ids = []
-    for p in benchmark_dir.glob("exps/exp*"):
-        m = re.match(r"exp(\d+)$", p.name)
-        if m:
-            ids.append(int(m.group(1)))
-    return sorted(ids)
+def latest_exp_name(benchmark_dir: Path) -> str | None:
+    names = list_exp_names(benchmark_dir)
+    return names[-1] if names else None
 
-
-def latest_exp_id(benchmark_dir: Path) -> int | None:
-    ids = list_exp_ids(benchmark_dir)
-    return max(ids) if ids else None
-
-
-def exp_root(benchmark_dir: Path, exp_id: int) -> Path:
-    return benchmark_dir / f"exps/exp{exp_id:04d}"
-
+def exp_root(benchmark_dir: Path, exp_name: str) -> Path:
+    return benchmark_dir / "exps" / exp_name
 
 # -----------------------------------------------------------------
 # parsing
@@ -77,9 +73,9 @@ def parse_infer_dir(dirname: str) -> tuple[str, str, str]:
 # Loaders
 # -----------------------------------------------------------------
 
-def load_compile(benchmark_dir: Path, exp_id: int) -> list[dict]:
+def load_compile(benchmark_dir: Path, exp_name: str) -> list[dict]:
     rows: list[dict] = []
-    base = exp_root(benchmark_dir, exp_id) / "results" / "compile"
+    base = exp_root(benchmark_dir, exp_name) / "results" / "compile"
     if not base.exists():
         return rows
     for f in base.rglob("*.json"):
@@ -87,7 +83,7 @@ def load_compile(benchmark_dir: Path, exp_id: int) -> list[dict]:
         ident = parse_key(f.stem)
         d = json.loads(f.read_text())
         rows.append({
-            "exp_id":        exp_id,
+            "exp_name":      exp_name,
             "backend":       backend,
             **ident,
             "compile_s":     d.get("compile_s"),
@@ -95,15 +91,16 @@ def load_compile(benchmark_dir: Path, exp_id: int) -> list[dict]:
             "circuit_edges": d.get("circuit_edges"),
             "circuit_depth": d.get("circuit_depth"),
             "timed_out":     d.get("timed_out", False),
+            "oom":           d.get("oom", False),
             "error":         d.get("error"),
         })
     return rows
 
 
-def load_count(benchmark_dir: Path, exp_id: int) -> list[dict]:
+def load_count(benchmark_dir: Path, exp_name: str) -> list[dict]:
     """Load count-stage results. Mirror of `load_compile`."""
     rows: list[dict] = []
-    base = exp_root(benchmark_dir, exp_id) / "results" / "count"
+    base = exp_root(benchmark_dir, exp_name) / "results" / "count"
     if not base.exists():
         return rows
     for f in base.rglob("*.json"):
@@ -111,12 +108,13 @@ def load_count(benchmark_dir: Path, exp_id: int) -> list[dict]:
         ident = parse_key(f.stem)
         d = json.loads(f.read_text())
         rows.append({
-            "exp_id":      exp_id,
+            "exp_name":    exp_name,
             "backend":     backend,
             **ident,
             "count_s":     d.get("count_s"),
             "model_count": d.get("model_count"),
             "timed_out":   d.get("timed_out", False),
+            "oom":         d.get("oom", False),
             "error":       d.get("error"),
         })
     return rows
@@ -129,9 +127,9 @@ def _ms_stats(vals: list[float] | None) -> tuple[float | None, float | None]:
     return statistics.mean(vals) * 1000, statistics.median(vals) * 1000
 
 
-def load_infer(benchmark_dir: Path, exp_id: int) -> list[dict]:
+def load_infer(benchmark_dir: Path, exp_name: str) -> list[dict]:
     rows: list[dict] = []
-    base = exp_root(benchmark_dir, exp_id) / "results" / "infer"
+    base = exp_root(benchmark_dir, exp_name) / "results" / "infer"
     if not base.exists():
         return rows
     for f in base.rglob("*.json"):
@@ -141,7 +139,7 @@ def load_infer(benchmark_dir: Path, exp_id: int) -> list[dict]:
         fwd_mean, fwd_med = _ms_stats(d.get("forward (warm)"))
         bwd_mean, _bwd_med = _ms_stats(d.get(" +backward (warm)"))
         rows.append({
-            "exp_id":            exp_id,
+            "exp_name":          exp_name,
             "backend":           backend,
             "semiring":          semiring,
             "device":            device,
@@ -157,9 +155,9 @@ def load_infer(benchmark_dir: Path, exp_id: int) -> list[dict]:
     return rows
 
 
-def load_experiment(benchmark_dir: Path, exp_id: int) -> list[dict]:
+def load_experiment(benchmark_dir: Path, exp_name: str) -> list[dict]:
     rows: list[dict] = []
-    base = exp_root(benchmark_dir, exp_id) / "results" / "experiment" / "dummy_overhead"
+    base = exp_root(benchmark_dir, exp_name) / "results" / "experiment" / "dummy_overhead"
     if not base.exists():
         return rows
     for f in base.rglob("*.json"):
@@ -174,7 +172,7 @@ def load_experiment(benchmark_dir: Path, exp_id: int) -> list[dict]:
             rf = 0
 
         rows.append({
-            "exp_id":              exp_id,
+            "exp_name":            exp_name,
             "backend":             backend,
             "semiring":            semiring,
             "device":              device,
@@ -190,3 +188,10 @@ def load_experiment(benchmark_dir: Path, exp_id: int) -> list[dict]:
             "wall_median_ms":      (t.get("wall_median_s") or 0) * 1000,
         })
     return rows
+
+
+def load_meta(benchmark_dir: Path, exp_name: str) -> dict:
+    p = exp_root(benchmark_dir, exp_name) / "meta.yaml"
+    if not p.exists():
+        return {}
+    return yaml.safe_load(p.read_text()) or {}

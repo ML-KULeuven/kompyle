@@ -15,7 +15,7 @@
 #
 # Stage-specific knobs:
 #   compile:  TIMEOUT (default 1800)
-#   count:    TIMEOUT (default 300)
+#   count:    TIMEOUT (default 1800)
 #
 # Tuning knobs (optional):
 #   OFFSET         added to SLURM_ARRAY_TASK_ID for chunked submissions

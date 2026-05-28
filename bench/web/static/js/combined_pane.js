@@ -1,28 +1,17 @@
 // Copyright (c) 2026 Ibrahim El Kaddouri
 // Licensed under apachev2
 //
-// Combined pane: every compile backend AND every count backend on one cactus.
+// Combined pane
+// every compile backend AND every count backend on one cactus.
 // Compile = solid line, count = dotted line. Backends from the same family
 // (X compile and X_count) share a colour so it's immediately obvious which
 // pairs go together. Counters without a matching compile backend (e.g.
 // isymganak_count) get their own colour.
-//
-// Two charts as elsewhere in this dashboard: log scale on top (with the
-// legend on the right), linear scale below (no legend, shares axes).
 
 import {
     COLORS, CFG, layout, layoutNoLegend,
     axisTicks, baseXAxis, baseYAxis,
 } from './plotly_config.js';
-
-// Backends are grouped into "families" so a compile backend and its
-// matching counters share a colour on the cactus. Two suffixes get
-// stripped, in order:
-//   _count   library/binary counter naming convention (X -> X_count)
-//   _bin     binary variant (X_count -> X_bin_count -> X)
-// After stripping, what remains is the family key (e.g. "ganak",
-// "d4v2"). isymganak_count has no _bin suffix, so it remains its own
-// family ("isymganak") with its own colour.
 
 const SUFFIXES = ['_count', '_bin'];
 
@@ -62,12 +51,11 @@ function colorMap(d) {
 function buildTraces(d, colors) {
     const traces = [];
 
-    // Compile: solid lines.
     Object.entries(d.compile_series).forEach(([b, s]) => {
         if (!s.cumsum.length) return;
         const fam = familyOf(b);
-        const label = s.n_timeout > 0
-            ? `${b} compile (${s.n_timeout} t/o)`
+        const label = s.n_failed > 0
+            ? `${b} compile (${s.n_failed} t/o)`
             : `${b} compile`;
         traces.push({
             type: 'scatter', mode: 'lines',
@@ -79,16 +67,12 @@ function buildTraces(d, colors) {
         });
     });
 
-    // Count: library counter (no `_bin` suffix)    -> dotted
-    //        binary counter   (`_bin_count` name)  -> dash-dot
-    // This makes the three baselines per family (compile, lib-count,
-    // bin-count) visually distinct while still sharing a colour.
     Object.entries(d.count_series).forEach(([b, s]) => {
         if (!s.cumsum.length) return;
-        const fam     = familyOf(b);
-        const isBin   = b.includes('_bin');
-        const dash    = isBin ? 'dashdot' : 'dot';
-        const label   = s.n_timeout > 0 ? `${b} (${s.n_timeout} t/o)` : b;
+        const fam   = familyOf(b);
+        const isBin = b.includes('_bin');
+        const dash  = isBin ? 'dashdot' : 'dot';
+        const label = s.n_failed > 0 ? `${b} (${s.n_failed} t/o)` : b;
         traces.push({
             type: 'scatter', mode: 'lines',
             name: label,
@@ -127,7 +111,7 @@ export function renderCombined(data) {
             font: { size: 13 },
         },
         xaxis: xax,
-        yaxis: { ...baseYAxis(), title: 'Cumulative time (ms)', type: 'log' },
+        yaxis: { ...baseYAxis(), title: 'Cumulative time (s)', type: 'log' },
     }), CFG);
 
     Plotly.react('chart-combined-lin',
@@ -138,6 +122,6 @@ export function renderCombined(data) {
                 font: { size: 13 },
             },
             xaxis: xax,
-            yaxis: { ...baseYAxis(), title: 'Cumulative time (ms)' },
+            yaxis: { ...baseYAxis(), title: 'Cumulative time (s)' },
         }), CFG);
 }

@@ -5,12 +5,9 @@
 //
 // For each compile backend X and its count-only partner X_count we have
 // a joined set of instances both solved. Three views:
-//   * cactus:    cumsum of count_ms vs compile_ms (sorted within each)
-//   * overhead:  per-instance (compile − count) in ms, sorted asc
+//   * cactus:    cumsum of count_s vs compile_s (sorted within each)
+//   * overhead:  per-instance (compile − count) in seconds, sorted asc
 //   * ratio:     per-instance (compile / count), sorted asc
-//
-// All three render to #chart-solver-main, the summary table below
-// (#chart-solver-table) is filled with cross-backend mean overhead / ratio.
 
 import {
     COLORS, CFG, layout, baseXAxis, baseYAxis,
@@ -43,24 +40,24 @@ function renderCactus(pair) {
     ], layout({
         title: { text: `Compile vs count cactus: ${pair.compile_backend}  (n=${pair.n_pairs})`, font: { size: 13 } },
         xaxis: { ...baseXAxis(), title: 'Instances' },
-        yaxis: { ...baseYAxis(), title: 'Cumulative time (ms)', type: 'log' },
+        yaxis: { ...baseYAxis(), title: 'Cumulative time (s)', type: 'log' },
     }), CFG);
 }
 
 
 function renderOverhead(pair) {
-    const x = pair.overhead_ms.map((_, i) => i + 1);
+    const x = pair.overhead_s.map((_, i) => i + 1);
     Plotly.react('chart-solver-main', [{
         type: 'scatter', mode: 'lines',
         name: `${pair.compile_backend} − ${pair.count_backend}`,
-        x, y: pair.overhead_ms,
+        x, y: pair.overhead_s,
         line: { color: COMPILE_COLOR, width: 2.2 },
         fill: 'tozeroy',
         fillcolor: 'rgba(50,102,173,0.10)',
     }], layout({
         title: { text: `Per-instance circuit-construction overhead: ${pair.compile_backend}  (n=${pair.n_pairs})`, font: { size: 13 } },
         xaxis: { ...baseXAxis(), title: 'Instances (sorted)' },
-        yaxis: { ...baseYAxis(), title: 'compile - count  (ms)' },
+        yaxis: { ...baseYAxis(), title: 'compile - count  (s)' },
     }), CFG);
 }
 
@@ -92,8 +89,6 @@ function renderRatio(pair) {
 
 // ---------------------------------------------------
 // Cross-backend summary table
-// same numbers for every view, sits below the main chart
-// so the chart can change without losing the comparison.
 // ---------------------------------------------------
 
 function median(xs) {
@@ -109,17 +104,17 @@ function mean(xs) {
 
 function renderSummary(pairs) {
     const rows = Object.values(pairs).map(p => ({
-        backend:    p.compile_backend,
-        n:          p.n_pairs,
-        ovh_med_ms: median(p.overhead_ms),
-        ovh_mean_ms: mean(p.overhead_ms),
-        ratio_med:  median(p.ratios),
-        ratio_mean: mean(p.ratios),
+        backend:     p.compile_backend,
+        n:           p.n_pairs,
+        ovh_med_s:   median(p.overhead_s),
+        ovh_mean_s:  mean(p.overhead_s),
+        ratio_med:   median(p.ratios),
+        ratio_mean:  mean(p.ratios),
     }));
     rows.sort((a, b) => (b.ratio_med ?? 0) - (a.ratio_med ?? 0));
 
-    const fmtMs   = v => v == null ? ':' : v.toFixed(1);
-    const fmtR    = v => v == null ? ':' : v.toFixed(2) + '×';
+    const fmtS = v => v == null ? ':' : v.toFixed(3);
+    const fmtR = v => v == null ? ':' : v.toFixed(2) + '×';
 
     const tableHtml = `
         <table class="summary-table">
@@ -127,8 +122,8 @@ function renderSummary(pairs) {
                 <tr>
                     <th>backend</th>
                     <th>n</th>
-                    <th>overhead (ms)<br>median</th>
-                    <th>overhead (ms)<br>mean</th>
+                    <th>overhead (s)<br>median</th>
+                    <th>overhead (s)<br>mean</th>
                     <th>ratio<br>median</th>
                     <th>ratio<br>mean</th>
                 </tr>
@@ -138,8 +133,8 @@ function renderSummary(pairs) {
                     <tr>
                         <td>${r.backend}</td>
                         <td>${r.n}</td>
-                        <td>${fmtMs(r.ovh_med_ms)}</td>
-                        <td>${fmtMs(r.ovh_mean_ms)}</td>
+                        <td>${fmtS(r.ovh_med_s)}</td>
+                        <td>${fmtS(r.ovh_mean_s)}</td>
                         <td>${fmtR(r.ratio_med)}</td>
                         <td>${fmtR(r.ratio_mean)}</td>
                     </tr>
@@ -185,7 +180,6 @@ export function renderSolverOverhead(data) {
     const pair       = pairs[backendKey];
 
     if (!pair) {
-        // Empty state, clear the chart.
         Plotly.react('chart-solver-main', [], layout({
             title: { text: 'No compile / count overlap yet, run both stages on the same instances.', font: { size: 13 } },
         }), CFG);

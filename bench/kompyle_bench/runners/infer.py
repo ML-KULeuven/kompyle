@@ -14,7 +14,6 @@ from kompyle_bench.runners._common import (
     skip_if_exists,
     write_json,
 )
-from kompyle_bench.verify import VerifyInput, assert_equivalent, can_verify
 
 
 def run_infer(
@@ -26,7 +25,6 @@ def run_infer(
     device:     str,
     batch_size: int,
     nb_repeats: int,
-    verify:     bool,
 ) -> int:
     """Inference benchmark for one parameter combination.
 
@@ -44,22 +42,6 @@ def run_infer(
     cnf = str(instance.cnf_path())
     with silenced_fds():
         compile_out = compile_with(backend, cnf)
-
-    if verify:
-        nb_vars, clauses = parse_cnf(cnf)
-        if can_verify(nb_vars, len(clauses)):
-            v = VerifyInput(
-                n_vars=nb_vars,
-                clauses=clauses,
-                circuit=compile_out.circuit,
-                desc=f"{backend}[verify] {instance.label}",
-            )
-            try:
-                assert_equivalent(v)
-                print(f"[verify] OK  {backend}  {instance.label}")
-            except AssertionError as e:
-                print(f"[verify] FAIL  {e}")
-                return 1
 
     nb_vars = instance.read_nb_vars()
     results: dict = {"circuit_nodes": cr["circuit_nodes"]}

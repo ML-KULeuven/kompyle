@@ -37,7 +37,9 @@ dev = ["nanobind >=1.3.2",
        "graphviz",
        "tqdm",
        "pandas",
-       "matplotlib"
+       "matplotlib",
+       "pyyaml",
+       "notebook"
 ]
 
 [project.urls]

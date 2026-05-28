@@ -102,7 +102,6 @@ def _cmd_infer(args: argparse.Namespace) -> int:
         device     = args.device,
         batch_size = args.batch_size,
         nb_repeats = args.nb_repeats,
-        verify     = bool(args.verify),
     )
 
 
@@ -123,7 +122,7 @@ def _cmd_serve(args: argparse.Namespace) -> int:
         benchmark_dir = Path(args.benchmark_dir).resolve(),
         web_dir       = Path(args.web_dir).resolve(),
         port          = args.port,
-        exp_id        = args.exp_id,
+        exp           = args.exp,
     )
     return 0
 
@@ -183,8 +182,6 @@ def _build_parser() -> argparse.ArgumentParser:
     p_i.add_argument("--device",     default="cpu")
     p_i.add_argument("--batch-size", type=int, default=128)
     p_i.add_argument("--nb-repeats", type=int, default=10)
-    p_i.add_argument("--verify",     type=int, choices=[0, 1], default=0,
-                     help="Exhaustive equivalence check (small instances only)")
     p_i.set_defaults(func=_cmd_infer)
 
     # experiment
@@ -208,8 +205,8 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Live dashboard server (auto-reloads result JSON on refresh).",
     )
     p_s.add_argument("--port",          type=int, default=8080)
-    p_s.add_argument("--exp-id",        type=int, default=None, metavar="ID",
-                     help="Pin to one exp ID; default is latest on each request")
+    p_s.add_argument("--exp",           default=None, metavar="NAME",
+                     help="Pin to one experiment name; default is latest on each request")
     p_s.add_argument("--benchmark-dir", default=str(BENCHMARK_DIR),
                      help="Where to find exps/ (default: package root)")
     p_s.add_argument("--web-dir",       default=str(WEB_DIR),

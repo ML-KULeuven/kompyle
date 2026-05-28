@@ -2,8 +2,7 @@
 # Copyright (c) 2026 Ibrahim El Kaddouri
 # Licensed under apachev2
 #
-# Local synthetic-sweep driver (workstation, not HPC).
-# Runs the full grid through GNU parallel.
+# Local synthetic-sweep driver
 #
 # Usage:
 #   bash scripts/local/sweep_synth.sh <exp_id> [phase] [-- extra parallel opts]
@@ -15,7 +14,6 @@
 
 set -euo pipefail
 
-# --- resolve locations -----------------------------------------------------
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${script_dir}/../lib/common.sh"
 source "${script_dir}/../lib/grid.sh"
@@ -24,7 +22,6 @@ EXP_ID="${1:?Usage: $0 <exp_id> [phase]}"
 PHASE="${2:-all}"
 shift 2 2>/dev/null || shift $#
 
-# Memory / timeout knobs
 : "${MEM_MB:=5000}"
 : "${TIMEOUT:=300}"
 : "${COUNT_TIMEOUT:=300}"
@@ -97,7 +94,6 @@ run_infer() {
             --batch-size  "${BATCH}"        \
             --nb-repeats  "${NB_REPEATS}"   \
             --exp-id      "${EXP_ID}"       \
-            --verify      "${VERIFY}"       \
     ::: "${NB_VARS[@]}"                     \
     ::: "${RATIOS[@]}"                      \
     ::: "${SEEDS[@]}"                       \

@@ -39,7 +39,7 @@ log "Syncing repository to scratch..."
 rsync -a --exclude='__pycache__' --exclude='*.pyc' --exclude='.git' \
     "${VSC_DATA}/kompyle/" "${VSC_SCRATCH}/kompyle/"
 
-BENCHMARK_SCRATCH="${VSC_SCRATCH}/kompyle/benchmark"
+BENCHMARK_SCRATCH="${VSC_SCRATCH}/kompyle/bench"
 INSTANCES_DIR="${BENCHMARK_SCRATCH}/assets"
 PROBLEMS_FILE="${BENCHMARK_SCRATCH}/assets/all_problems.txt"
 require_file "${PROBLEMS_FILE}"
