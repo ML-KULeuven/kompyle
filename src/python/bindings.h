@@ -16,6 +16,7 @@ namespace kmpyl {
 void InitCircuitBindings(nanobind::module_& m);
 void InitGatedFormulaBindings(nanobind::module_& m);
 void InitCompileBindings(nanobind::module_& m);
+void InitStatsBindings(nanobind::module_& m);
 
 }  // namespace kmpyl
 

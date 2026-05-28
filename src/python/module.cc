@@ -11,4 +11,5 @@ NB_MODULE(pkompyle, m) {
   kmpyl::InitCircuitBindings(m);
   kmpyl::InitGatedFormulaBindings(m);
   kmpyl::InitCompileBindings(m);
+  kmpyl::InitStatsBindings(m);
 }

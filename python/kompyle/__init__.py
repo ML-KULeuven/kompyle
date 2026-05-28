@@ -11,7 +11,7 @@ Typical usage::
 
     circuit = kompyle.Circuit()
 
-    # Ganak:
+    # Ganak compile:
     root = kompyle.compile_from_cnf_using_ganak(circuit, "formula.cnf")
 
     # Ganak with counter options:
@@ -134,12 +134,30 @@ from .pkompyle import (  # noqa: E402
     compile_from_cnf_using_d4v2,
     compile_from_gates_file_using_d4v2,
     compile_from_gates_formula_using_d4v2,
+    # Count entry points
+    count_from_cnf_using_ganak,
+    count_from_cnf_using_d4v2,
+    # Klay-overhead benchmark helpers
+    get_ganak_stats,
+    get_d4_stats,
+    reset_ganak_stats,
+    reset_d4_stats,
+    reset_all_stats,
 )
 
 from ._sdd import (  # noqa: E402
     compile_from_sdd,
     compile_from_cnf_using_sdd,
+    count_from_cnf_using_sdd,
 )
+
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("kompyle")
+except PackageNotFoundError:
+    __version__ = "0.0.0+unknown"
+
 
 __all__ = [
     # kompyle core
@@ -158,6 +176,16 @@ __all__ = [
     "compile_from_cnf_using_d4v2",
     "compile_from_gates_file_using_d4v2",
     "compile_from_gates_formula_using_d4v2",
+    # count entry points
+    "count_from_cnf_using_ganak",
+    "count_from_cnf_using_d4v2",
+    "count_from_cnf_using_sdd",
+    # klay-overhead benchmark helpers
+    "get_ganak_stats",
+    "get_d4_stats",
+    "reset_ganak_stats",
+    "reset_d4_stats",
+    "reset_all_stats",
     # re-exports from klay
     "NodePtr",
     "check_sdnnf",

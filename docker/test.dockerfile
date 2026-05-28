@@ -18,7 +18,7 @@ RUN ${PYBIN}/pip install \
     pytest \
     pytest-xdist \
     torch \
-    "pysdd @ git+https://github.com/IbrahimElk/pysdd.git@feat/add-capsule-to-sddnode" \
-    "klaycircuits @ git+https://github.com/IbrahimElk/klay.git@feat/sd-dnnf-checker"
+    "pysdd" \
+    "klaycircuits"
 
 RUN ${PYBIN}/pytest tests/

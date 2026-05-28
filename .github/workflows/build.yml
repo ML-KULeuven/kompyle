@@ -63,6 +63,12 @@ jobs:
           push: true
           tags: ghcr.io/${{ env.REPO_LC }}/manylinux-deps:latest
 
+      - name: Prepare macos dependency paths
+        if: matrix.platform == 'macos'
+        run: |
+          sudo mkdir -p /usr/local/lib /usr/local/include /usr/local/bin
+          sudo chown -R $USER /usr/local/lib /usr/local/include /usr/local/bin
+
       - name: Build macos dependencies
         if: matrix.platform == 'macos'
         run: bash scripts/build_deps.sh
@@ -98,6 +104,8 @@ jobs:
       packages: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # required for setuptools-scm
 
       # see pyproject.toml
       - name: Set macos deployment target
@@ -148,9 +156,9 @@ jobs:
             --exclude libklay.so
 
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-            pip install "klaycircuits @ git+https://github.com/IbrahimElk/klay.git@feat/sd-dnnf-checker" &&
+            pip install "klaycircuits" &&
             DYLD_LIBRARY_PATH="$(python -c 'import klay, os; print(os.path.dirname(os.path.abspath(klay.__file__)))')"
-            delocate-wheel -w {dest_dir} {wheel} --exclude libklay
+            delocate-wheel -w {dest_dir} {wheel} --exclude libklay --exclude libgmp
 
           CIBW_TEST_EXTRAS: "dev"
           CIBW_TEST_COMMAND: "cd {project} && pytest {project}/tests"
@@ -171,6 +179,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # required for setuptools-scm
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -184,3 +195,22 @@ jobs:
         with:
           name: dist-source
           path: dist/*.tar.gz
+
+  upload_wheels:
+    name: Upload wheels to TestPyPI
+    runs-on: ubuntu-latest
+    needs: [build_wheels, build_sdist]
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+      - name: Publish package to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: dist/
+          skip-existing: true

@@ -5,15 +5,15 @@ import os
 import random
 import tempfile
 import itertools
-# import subprocess
+import subprocess
 
 from dataclasses import dataclass
 from typing      import Dict, Generator, List, Tuple, Callable
 from pysdd.sdd   import SddManager
 
-import klay as k
 import torch
-import kompyle as p
+import kompyle  as p
+import klay     as k
 
 
 # -----------------------------------------------------------------------
@@ -21,6 +21,12 @@ import kompyle as p
 # -----------------------------------------------------------------------
 
 def _compile_from_cnf_using_ganak(circuit: p.Circuit, cnf_path: str) -> p.NodePtr:
+    aopt = p.ArjunOptions()
+    aopt.do_arjun = False
+    return p.compile_from_cnf_using_ganak(circuit, cnf_path, arjun_options=aopt)
+
+
+def _compile_from_cnf_using_ganak_arjun(circuit: p.Circuit, cnf_path: str) -> p.NodePtr:
     return p.compile_from_cnf_using_ganak(circuit, cnf_path)
 
 
@@ -39,6 +45,7 @@ def _compile_from_cnf_using_d4v2(circuit: p.Circuit, cnf_path: str) -> p.NodePtr
 
 ALL_COMPILERS: List[Tuple[str, Callable]] = [
     ("from_cnf_using_ganak",        _compile_from_cnf_using_ganak),
+    ("from_cnf_using_ganak_arjun",  _compile_from_cnf_using_ganak_arjun),
     ("from_cnf_using_sdd",          _compile_from_cnf_using_sdd),
     ("from_sdd",                    _compile_from_sdd),
     ("from_cnf_using_d4v2",         _compile_from_cnf_using_d4v2)
@@ -53,6 +60,26 @@ COMPILER_FUNCS = [fn   for _, fn  in ALL_COMPILERS]
 # ===================================================================
 
 @dataclass
+class BcGate:
+    gate_type: str
+    output: str
+    output_negated: bool
+    inputs: List[str]
+    input_negated: List[bool]
+
+@dataclass
+class BcCircuit:
+    input_vars: List[str]
+    gates: List[BcGate]
+    true_lits: List[str]
+    true_lits_negated: List[bool]
+    all_vars: List[str]
+
+    @property
+    def n_input_vars(self) -> int:
+        return len(self.input_vars)
+
+@dataclass
 class FormulaCircuitPair:
     path: str
     n_vars: int
@@ -61,8 +88,8 @@ class FormulaCircuitPair:
     desc: str
     compiler_id: str
     _tmp: bool = False
-    _bc: object = None
-    _clauses: List[List[int]] = None
+    _bc: BcCircuit | None = None
+    _clauses: List[List[int]] | None = None
 
     def cleanup(self):
         if self._tmp and os.path.exists(self.path):
@@ -109,7 +136,7 @@ def compile_file(
     circuit.set_root(root)
     circuit.remove_unused_nodes()
 
-    # dot_path = f"/workspace/tmp/debug_n{n_vars}_m{len(clauses)}_s{0}.dot"
+    # dot_path = f"./tmp/debug_cnf_{compiler_id}_n{n_vars}_m{len(clauses)}.dot"
     # k.klay_ext.circuit_to_dot(circuit, dot_path)
     # svg_path = dot_path.replace(".dot", ".svg")
     # subprocess.run(["dot", "-Tsvg", dot_path, "-o", svg_path], check=True)
@@ -181,7 +208,7 @@ def cnf_to_gated_formula(n_vars: int, clauses: List[List[int]]) -> p.GatedFormul
         gf.add_target(str(next_id))
         return gf
 
-    clause_vars: List[int] = []
+    clause_vars: List[str] = []
     for clause in clauses:
         gf.add_or(str(next_id), [str(a) for a in clause])
         clause_vars.append(str(next_id))
@@ -208,7 +235,7 @@ def compile_gated(
     circuit.set_root(root)
     circuit.remove_unused_nodes()
 
-    # dot_path = f"/workspace/tmp/debug_n{n_vars}_m{len(clauses)}_s{1}.dot"
+    # dot_path = f"./tmp/debug_gated_d4v2_n{n_vars}_m{len(clauses)}.dot"
     # k.klay_ext.circuit_to_dot(circuit, dot_path)
     # svg_path = dot_path.replace(".dot", ".svg")
     # subprocess.run(["dot", "-Tsvg", dot_path, "-o", svg_path], check=True)
@@ -233,7 +260,7 @@ def compile_gated_from_cnf_file(
 ) -> FormulaCircuitPair:
     n_vars, clauses = parse_cnf(cnf_path)
     pair = compile_gated(n_vars, clauses, desc)
-    pair.cnf_path = cnf_path
+    pair.path = cnf_path
     return pair
 
 
@@ -256,7 +283,7 @@ def compile_gated_from_bc_file(
     #     if actual != expected:
     #         print(f"MISMATCH: {name} expected cid={expected}, got {actual}")
 
-    # dot_path = f"/workspace/tmp/debug_n{len(bc.all_vars)}_s{0}.dot"
+    # dot_path = f"./tmp/debug_bcfile_d4v2_n{len(bc.all_vars)}.dot"
     # k.klay_ext.circuit_to_dot(circuit, dot_path)
     # svg_path = dot_path.replace(".dot", ".svg")
     # subprocess.run(["dot", "-Tsvg", dot_path, "-o", svg_path], check=True)
@@ -272,27 +299,6 @@ def compile_gated_from_bc_file(
         _tmp=False,
         _bc=bc
     )
-
-@dataclass
-class BcGate:
-    gate_type: str
-    output: str
-    output_negated: bool
-    inputs: List[str]
-    input_negated: List[bool]
-
-
-@dataclass
-class BcCircuit:
-    input_vars: List[str]
-    gates: List[BcGate]
-    true_lits: List[str]
-    true_lits_negated: List[bool]
-    all_vars: List[str]
-
-    @property
-    def n_input_vars(self) -> int:
-        return len(self.input_vars)
 
 
 def _parse_lit(tok: str) -> Tuple[str, bool]:
@@ -391,6 +397,13 @@ def all_assignments(n_vars: int) -> Generator[Assignment, None, None]:
         yield assignment
 
 
+def all_assignments_tensor(n_vars: int) -> torch.Tensor:
+    return torch.tensor(
+        list(itertools.product([0.0, 1.0], repeat=n_vars)),
+        dtype=torch.float32
+    )
+
+
 def eval_formula(clauses: List[List[int]], alpha: Assignment) -> bool:
     for clause in clauses:
         clause_satisfied = False
@@ -408,112 +421,151 @@ def eval_formula(clauses: List[List[int]], alpha: Assignment) -> bool:
     return True
 
 
-def eval_circuit(circuit: p.Circuit, n_vars: int, alpha: Assignment) -> float:
-    pos_w = torch.tensor([1.0 if alpha[v + 1] else 0.0 for v in range(n_vars)])
-    m = circuit.to_torch_module(semiring="real")
-    # sum because circuits can have multiple roots
-    return float(m(pos_w).sum())
+def eval_formula_batch(clauses, inputs: torch.Tensor) -> torch.Tensor:
+    """
+    inputs: (B, n) in {0,1}
+    returns: (B,) bool
+    """
+    inputs_bool = inputs > 0.5
+    B = inputs.shape[0]
+    result = torch.ones(B, dtype=torch.bool)
+
+    for clause in clauses:
+        clause_sat = torch.zeros(B, dtype=torch.bool)
+        for lit in clause:
+            var = abs(lit) - 1
+            if lit > 0:
+                val = inputs_bool[:, var]
+            else:
+                val = ~inputs_bool[:, var]
+            clause_sat |= val
+        result &= clause_sat
+    return result
 
 
-def eval_bc_circuit(bc: BcCircuit, alpha: Assignment) -> bool:
-    val = {}
+def eval_circuit_batch(module, inputs: torch.Tensor) -> torch.Tensor:
+    """
+    inputs: (B, n)
+    returns: (B,) float, one value per assignment
+    """
+    outs = []
+    for i in range(inputs.shape[0]):
+        out = module(inputs[i : i + 1])
+
+        if out.dim() == 0:
+            outs.append(out.reshape(1))
+        elif out.dim() == 1:
+            outs.append(out)
+        elif out.dim() == 2:
+            outs.append(out.sum(dim=-1))
+        else:
+            raise RuntimeError(f"Unexpected output shape: {out.shape}")
+
+    return torch.cat(outs, dim=0)
+
+def eval_bc_circuit_batch(bc: BcCircuit, inputs: torch.Tensor) -> torch.Tensor:
+    """
+    inputs: (B, n_input_vars)
+    returns: (B,) bool
+    """
+    inputs_bool = inputs > 0.5
+    B = inputs.shape[0]
+
+    val: Dict[str, torch.Tensor] = {}
+
     for i, var_name in enumerate(bc.input_vars):
-        val[var_name] = alpha[i + 1]
+        val[var_name] = inputs_bool[:, i]
 
     for gate in bc.gates:
         if gate.gate_type == "IDENTITY":
-            inp = val[gate.inputs[0]]
+            x = val[gate.inputs[0]]
             if gate.input_negated[0]:
-                inp = not inp
-            val[gate.output] = inp
+                x = ~x
+            val[gate.output] = x
 
         elif gate.gate_type == "AND":
-            result = True
+            x = torch.ones(B, dtype=torch.bool)
             for name, neg in zip(gate.inputs, gate.input_negated):
                 v = val[name]
                 if neg:
-                    v = not v
-                if not v:
-                    result = False
-                    break
-            val[gate.output] = result
+                    v = ~v
+                x &= v
+            val[gate.output] = x
 
         elif gate.gate_type == "OR":
-            result = False
+            x = torch.zeros(B, dtype=torch.bool)
             for name, neg in zip(gate.inputs, gate.input_negated):
                 v = val[name]
                 if neg:
-                    v = not v
-                if v:
-                    result = True
-                    break
-            val[gate.output] = result
+                    v = ~v
+                x |= v
+            val[gate.output] = x
 
+    result = torch.ones(B, dtype=torch.bool)
     for name, neg in zip(bc.true_lits, bc.true_lits_negated):
         v = val[name]
         if neg:
-            v = not v
-        if not v:
-            return False
-    return True
+            v = ~v
+        result &= v
+    return result
 
 
 # ===================================================================
 # INTEGRATION (circuit == cnf ?)
 # ===================================================================
 
-def assignment_str(alpha: Assignment) -> str:
-    parts = []
-    for v, b in sorted(alpha.items()):
-        value = "T" if b else "F"
-        parts.append(f"x{v}={value}")
-    return "{" + ", ".join(parts) + "}"
-
-
 def assert_exhaustive_equivalence(pair: FormulaCircuitPair) -> None:
-    mismatches: List[Tuple[Assignment, bool, bool]] = []
+    module = pair.circuit.to_torch_module(semiring="real")
+    module = torch.vmap(module)
+    module = torch.compile(module, mode="reduce-overhead")
 
     if pair._bc is not None:
+        bc = pair._bc
+        inputs = all_assignments_tensor(bc.n_input_vars)
+        f_sat = eval_bc_circuit_batch(bc, inputs)
+        full_inputs = torch.zeros((inputs.shape[0], pair.n_vars))
         input_var_to_circuit_id = {
-            var_name: pair._bc.all_vars.index(var_name) + 1
-            for var_name in pair._bc.input_vars
+            var_name: bc.all_vars.index(var_name)
+            for var_name in bc.input_vars
         }
-        n_input = pair._bc.n_input_vars
 
-        for input_alpha in all_assignments(n_input):
-            f_sat = eval_bc_circuit(pair._bc, input_alpha)
+        for i, var_name in enumerate(bc.input_vars):
+            cid = input_var_to_circuit_id[var_name]
+            full_inputs[:, cid] = inputs[:, i]
 
-            full_alpha = {i: False for i in range(1, pair.n_vars + 1)}
-            for i, var_name in enumerate(pair._bc.input_vars):
-                cid = input_var_to_circuit_id[var_name]
-                full_alpha[cid] = input_alpha[i + 1]
+        c_vals = eval_circuit_batch(module, full_inputs)
+        c_sat = c_vals > 0.5
 
-            c_val = eval_circuit(pair.circuit, pair.n_vars, full_alpha)
-            c_sat = c_val > 0.5
-            if f_sat != c_sat:
-                mismatches.append((input_alpha, f_sat, c_sat))
     else:
-        for alpha in all_assignments(pair.n_vars):
-            f_sat = eval_formula(pair._clauses, alpha)
-            c_val = eval_circuit(pair.circuit, pair.n_vars, alpha)
-            c_sat = c_val > 0.5
-            if f_sat != c_sat:
-                mismatches.append((alpha, f_sat, c_sat))
+        assert pair._clauses is not None
+        inputs = all_assignments_tensor(pair.n_vars)
+        f_sat = eval_formula_batch(pair._clauses, inputs)
+        c_vals = eval_circuit_batch(module, inputs)
+        c_sat = c_vals > 0.5
 
-    assert not mismatches, (
-        f"[{pair.desc}] Exhaustive check found {len(mismatches)} disagreements:\n"
-        + "\n".join(
-            f"  {assignment_str(a)}: formula={f}, circuit={c}"
-            for a, f, c in mismatches[:10]
+    mismatches = (f_sat != c_sat)
+
+    if mismatches.any():
+        idxs = torch.where(mismatches)[0][:10]
+
+        examples = []
+        for i in idxs:
+            a = inputs[i]
+            examples.append(
+                f"{a.tolist()}: formula={bool(f_sat[i])}, circuit={bool(c_sat[i])}"
+            )
+
+        raise AssertionError(
+            f"[{pair.desc}] Exhaustive check found {mismatches.sum().item()} disagreements:\n"
+            + "\n".join(examples)
         )
-    )
 
 # ===================================================================
 # STRUCTURE (smooth ?, decomposable ?)
 # ===================================================================
 
-def assert_decomposable(pair: FormulaCircuitPair) -> k.SDNNFResult:
-    result = k.check_decomposability(pair.circuit, max_violations=10)
+def assert_decomposable(pair: FormulaCircuitPair) -> p.SDNNFResult:
+    result = p.check_decomposability(pair.circuit, max_violations=10)
     assert result.is_decomposable, (
         f"[{pair.desc}] circuit is not decomposable.\n{result.summary()}"
     )
@@ -521,8 +573,8 @@ def assert_decomposable(pair: FormulaCircuitPair) -> k.SDNNFResult:
         f"[{pair.desc}] unexpected violations:\n{result.summary()}"
     )
 
-def assert_smooth(pair: FormulaCircuitPair) -> k.SDNNFResult:
-    result = k.check_smooth(pair.circuit, max_violations=10)
+def assert_smooth(pair: FormulaCircuitPair) -> p.SDNNFResult:
+    result = p.check_smooth(pair.circuit, max_violations=10)
     assert result.is_smooth, (
         f"[{pair.desc}] circuit is not smooth.\n{result.summary()}"
     )
@@ -530,7 +582,7 @@ def assert_smooth(pair: FormulaCircuitPair) -> k.SDNNFResult:
         f"[{pair.desc}] unexpected violations:\n{result.summary()}"
     )
 
-def assert_correct_structure(pair: FormulaCircuitPair) -> k.SDNNFResult:
+def assert_correct_structure(pair: FormulaCircuitPair) -> p.SDNNFResult:
     if "ganak" in pair.compiler_id:
         assert_decomposable(pair)
         assert_smooth(pair)

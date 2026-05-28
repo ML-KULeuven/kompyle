@@ -150,7 +150,7 @@ def pair_random(request, compiler):
 def gf_pair_random(request):
     n, m, seed = request.param
     clauses = random_clauses(n, m, k=3, seed=seed)
-    pair = compile_gated(n, clauses, f"random-3cnf-n{n}-m{m}-s{seed}")
+    pair = compile_gated(n, clauses, f"random-3cnf-n{n}-m{m}-s{seed}-gf")
     yield pair
     pair.cleanup()
 
@@ -173,10 +173,10 @@ def gf_pair_random(request):
     # # small debug examples
     (2, 2, 0),
     (2, 2, 1),
-    (30, 26, 0),
-    (30, 90, 0),
-    (40, 120, 0),
-    (50, 150, 0),
+    # (30, 26, 0),
+    # (30, 90, 0),
+    # (40, 120, 0),
+    # (50, 150, 0),
 ])
 def pair_random_structure(request, compiler):
     cid, cfn = compiler

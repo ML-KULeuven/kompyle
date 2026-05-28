@@ -1,18 +1,150 @@
-name: build and publish
+name: publish
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      deps: ${{ steps.filter.outputs.deps }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            deps:
+              - 'scripts/deps/**'
+
+  build_deps:
+    needs: changes
+    if: needs.changes.outputs.deps == 'true' || github.event_name == 'workflow_dispatch'
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: macos-latest
+            platform: macos
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # see pyproject.toml
+      - name: Set macos deployment target
+        if: runner.os == 'macOS'
+        run: echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
+
+      - name: Set lowercase repository
+        if: matrix.platform == 'linux'
+        run: echo "REPO_LC=${REPO,,}" >> $GITHUB_ENV
+        env:
+          REPO: ${{ github.repository }}
+
+      - name: Log in to GHCR
+        if: matrix.platform == 'linux'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push docker image
+        if: matrix.platform == 'linux'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/deps.dockerfile
+          push: true
+          tags: ghcr.io/${{ env.REPO_LC }}/manylinux-deps:latest
+
+      - name: Prepare macos dependency paths
+        if: matrix.platform == 'macos'
+        run: |
+          sudo mkdir -p /usr/local/lib /usr/local/include /usr/local/bin
+          sudo chown -R $USER /usr/local/lib /usr/local/include /usr/local/bin
+
+      - name: Build macos dependencies
+        if: matrix.platform == 'macos'
+        run: bash scripts/build_deps.sh
+
+      - name: Save macos dependencies to cache
+        if: matrix.platform == 'macos'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            /usr/local/lib
+            /usr/local/include
+            /usr/local/bin
+          key: macos-deps-${{ hashFiles('scripts/deps/**') }}
+
+
   build_wheels:
+    needs: build_deps
+    if: |
+      always() &&
+      (needs.build_deps.result == 'success' ||
+       needs.build_deps.result == 'skipped')
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [
+          ubuntu-latest,
+          macos-latest
+        ]
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # see pyproject.toml
+      - name: Set macos deployment target
+        if: runner.os == 'macOS'
+        run: echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
+
+      # https://github.com/orgs/community/discussions/27086
+      - name: Set lowercase repository
+        if: runner.os == 'Linux'
+        run: echo "REPO_LC=${REPO,,}" >> $GITHUB_ENV
+        env:
+          REPO: ${{ github.repository }}
+
+      - name: Prepare macos dependency paths
+        if: runner.os == 'macOS'
+        run: |
+          sudo mkdir -p /usr/local/lib /usr/local/include /usr/local/bin
+          sudo chown -R $USER /usr/local/lib /usr/local/include /usr/local/bin
+
+      - name: Restore macos dependencies
+        if: runner.os == 'macOS'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            /usr/local/lib
+            /usr/local/include
+            /usr/local/bin
+          key: macos-deps-${{ hashFiles('scripts/deps/**') }}
+
+      - name: Log in to GHCR
+        if: runner.os == 'Linux'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.4.0
@@ -20,8 +152,18 @@ jobs:
           CIBW_BUILD: "cp312-*"
           CIBW_SKIP: "*i686 *ppc64le *s390x *win32* *musllinux*"
 
-          CIBW_BEFORE_ALL: "bash {project}/scripts/build_deps.sh"
-          CIBW_TEST_REQUIRES: pytest
+          CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/${{ env.REPO_LC }}/manylinux-deps:latest
+
+          CIBW_REPAIR_WHEEL_COMMAND: >
+            auditwheel repair -w {dest_dir} {wheel}
+            --exclude libklay.so
+
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+            pip install "klaycircuits" &&
+            DYLD_LIBRARY_PATH="$(python -c 'import klay, os; print(os.path.dirname(os.path.abspath(klay.__file__)))')"
+            delocate-wheel -w {dest_dir} {wheel} --exclude libklay --exclude libgmp
+
+          CIBW_TEST_EXTRAS: "dev"
           CIBW_TEST_COMMAND: "cd {project} && pytest {project}/tests"
 
       - uses: actions/upload-artifact@v4
@@ -30,11 +172,19 @@ jobs:
           path: ./wheelhouse/*.whl
 
   build_sdist:
+    needs: build_deps
+    if: |
+      always() &&
+      (needs.build_deps.result == 'success' ||
+       needs.build_deps.result == 'skipped')
     name: Prepare source distribution
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -53,9 +203,6 @@ jobs:
     name: Upload wheels to PyPI
     runs-on: ubuntu-latest
     needs: [build_wheels, build_sdist]
-    environment:
-      name: pypi
-      url: https://pypi.org/p/kompyle
     permissions:
       id-token: write
 

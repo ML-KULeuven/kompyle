@@ -6,8 +6,7 @@ import kompyle as p
 from util import write_cnf
 from pysdd.sdd   import SddManager
 
-from util import (
-    assert_exhaustive_equivalence,
+from util import ( assert_exhaustive_equivalence,
     compile_gated,
 )
 
@@ -16,13 +15,74 @@ class TestAPI:
         circuit = p.Circuit()
         assert circuit.nb_nodes() == 0
 
-    def test_compile_from_ganak_xor(self):
+    def test_compile_ganak(self):
         circuit = p.Circuit()
-        path = write_cnf(3, [[1, 2], [-1, -2]])
-        nptr = p.compile_from_cnf_using_ganak(circuit, path)
+        path = "./assets/toy/toy2.cnf"
+
+        gopt = p.GanakOptions()
+        gopt.do_restart = True
+
+        aopt = p.ArjunOptions()
+        aopt.do_arjun = False
+
+        nptr = p.compile_from_cnf_using_ganak(circuit, path,
+                                              # ganak_options=gopt,
+                                              arjun_options=aopt)
+
         circuit.set_root(nptr)
         assert circuit.nb_nodes() > 0
         assert circuit.nb_root_nodes() == 1
+
+    def test_compile_d4(self):
+        circuit = p.Circuit()
+        path = "./assets/toy/toy2.cnf"
+
+        nptr = p.compile_from_cnf_using_d4v2(circuit, path)
+
+        circuit.set_root(nptr)
+        assert circuit.nb_nodes() > 0
+        assert circuit.nb_root_nodes() == 1
+
+    def test_count_ganak(self):
+        circuit = p.Circuit()
+        path = "./assets/toy/toy2.cnf"
+
+        gopt = p.GanakOptions()
+        gopt.do_restart = True
+
+        aopt = p.ArjunOptions()
+        aopt.do_arjun = True
+
+        count = p.count_from_cnf_using_ganak(path,
+                                             ganak_options=gopt,
+                                             arjun_options=aopt)
+
+    def test_count_d4(self):
+        circuit = p.Circuit()
+        path = "./assets/toy/toy2.cnf"
+
+        nptr = p.compile_from_cnf_using_d4v2(circuit, path)
+
+        circuit.set_root(nptr)
+        assert circuit.nb_nodes() > 0
+        assert circuit.nb_root_nodes() == 1
+
+    def test_compile_from_ganak_xor(self):
+        circuit = p.Circuit()
+        path = write_cnf(3, [[1, 2], [-1, -2]])
+        aopt = p.ArjunOptions()
+        aopt.do_arjun = False
+        nptr = p.compile_from_cnf_using_ganak(circuit, path, arjun_options=aopt)
+        circuit.set_root(nptr)
+        assert circuit.nb_nodes() > 0
+        assert circuit.nb_root_nodes() == 1
+
+    def test_count_from_ganak_xor(self):
+        circuit = p.Circuit()
+        path = write_cnf(3, [[1, 2], [-1, -2]])
+        aopt = p.ArjunOptions()
+        aopt.do_arjun = False
+        count = p.count_from_cnf_using_ganak(path, arjun_options=aopt)
 
     def test_compile_from_cnf_using_sdd(self):
         circuit = p.Circuit()
