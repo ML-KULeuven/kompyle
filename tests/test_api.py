@@ -17,7 +17,7 @@ class TestAPI:
 
     def test_compile_ganak(self):
         circuit = p.Circuit()
-        path = "./assets/toy/toy2.cnf"
+        path = "./assets/toy/toy1.cnf"
 
         gopt = p.GanakOptions()
         gopt.do_restart = True
@@ -35,7 +35,7 @@ class TestAPI:
 
     def test_compile_d4(self):
         circuit = p.Circuit()
-        path = "./assets/toy/toy2.cnf"
+        path = "./assets/toy/toy1.cnf"
 
         nptr = p.compile_from_cnf_using_d4v2(circuit, path)
 
@@ -45,7 +45,7 @@ class TestAPI:
 
     def test_count_ganak(self):
         circuit = p.Circuit()
-        path = "./assets/toy/toy2.cnf"
+        path = "./assets/toy/toy1.cnf"
 
         gopt = p.GanakOptions()
         gopt.do_restart = True
@@ -59,7 +59,7 @@ class TestAPI:
 
     def test_count_d4(self):
         circuit = p.Circuit()
-        path = "./assets/toy/toy2.cnf"
+        path = "./assets/toy/toy1.cnf"
 
         nptr = p.compile_from_cnf_using_d4v2(circuit, path)
 
