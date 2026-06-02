@@ -1,0 +1,388 @@
+---
+kompyle depends on libboost_container.so.1.90.0 and libboost_program_options.so.1.90.0
+
+Boost does not require that the license appear with executables or other binary uses
+of the library [1].
+However, for completeness sake, I've retained the license for documentation purposes.
+This license, which is very similar to the BSD license and the MIT license, should
+satisfy the Open Source Initiative's Open Source Definition: (i) the license permits
+free redistribution [1].
+
+[1]: https://boost.org.cpp.al/users/license.html
+
+---
+
+---
+
+kompyle depends on libgmp.so.10.5.0 and libgmpxx.so.4.7.0
+Since version 6, GMP is distributed under the dual licenses, GNU LGPL v3 and GNU GPL v2.
+Both libraries were compiled from https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
+These licenses make the library free to use, share, and improve, and allow you to pass
+on the result. The GNU licenses give freedoms, but also set firm restrictions on the use
+with non-free programs [2].
+
+We'll use LGPL since these libraries are dynamicaly linked and doesn't impose a GPL
+license on the rest of the codebase. With LGPL, we need not to provide the source code
+but provide a link to the source code, i.e. "in one of the ways for which the LGPL
+provides" [3][4]. See section 4 in LGPL license [5].
+
+See also gmppy2 to get an idea of how they package it, they inlcude both licenses.
+
+[2]: https://gmplib.org/
+[3]: https://www.gnu.org/licenses/gpl-faq.en.html#GPLStaticVsDynamic
+[4]: https://www.gnu.org/licenses/gpl-faq.en.html#LGPLStaticVsDynamic
+[5]: https://www.gnu.org/licenses/lgpl-3.0.html
+
+---
+
+---
+
+kompyle depends on libmpfr.so.6.2.1
+MPFR is free. It is distributed under the GNU Lesser General Public License
+(GNU Lesser GPL), version 3 or later (2.1 or later for MPFR versions until 2.4.x).
+The library has been registered in France by the Agence de Protection des Programmes
+under the number IDDN FR 001 120020 00 R P 2000 000 10800, on 15 March 2000. This license
+guarantees your freedom to share and change MPFR, to make sure MPFR is free for all its
+users. Unlike the ordinary General Public License, the Lesser GPL enables developers of
+non-free programs to use MPFR in their programs. If you have written a new function for
+MPFR or improved an existing one, please share your work! [6]
+
+We use v4.2.1 [7], so LGPL V3 is needed.
+
+[6]: www.mpfr.org/index.html
+[7]: https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.1.tar.xz
+
+---
+
+---
+
+kompyle depends on libflint.so.20.0.0
+
+FLINT is a C library for doing number theory, freely available under the GNU
+Lesser General Public License version 3 or later [8].
+There is a copy of the license included in the repository and distribution tarballs.
+Note, however, that between FLINT version 2.6 and 3.1, it was distributed with
+LGPL version 2, and before that GPL version 2.
+
+We use flint version 3.2, so LGPL V3.
+
+[8]: https://flintlib.org/
+[9]: https://github.com/flintlib/flint/releases/download/v3.2.0-rc1/flint-3.2.0-rc1.tar.gz
+
+
+---
+
+---
+
+kompyle depends on libarjun.so.2.6 which depends on mlpack
+mlpack depends on cereal, mlpack, ensmallen and armadillo.
+mlpack and cereal are header-only libraries.
+
+cereal 1.3.2 is BSD-3-Clause
+mlpack 4.7.0 is BSD-3-Clause
+ensmallen 2.22.2 is BSD-3-Clause
+armadillo 14.0.2 is Apache-2.0
+
+For BSD-3 licenses:
+Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution [10].
+
+For apachev2 license:
+You may reproduce and distribute copies of the Work or Derivative Works thereof
+in any medium, with or without modifications, and in Source or Object form,
+provided that You meet the following conditions [11].
+
+
+
+---
+
+Armadillo can be used in both open-source and proprietary (closed-source) software.
+
+Armadillo is licensed under the Apache License, Version 2.0 (the "License").
+A copy of the License is included in the "LICENSE.txt" file.
+
+Any software that incorporates or distributes Armadillo in source or binary form
+must include, in the documentation and/or other materials provided with the software,
+a readable copy of the attribution notices present in the "NOTICE.txt" file.
+See the License for details. The contents of the "NOTICE.txt" file are for
+informational purposes only and do not modify the License [13].
+
+---
+
+ensmallen is provided without any warranty of fitness for any purpose.  You
+can redistribute the library and/or modify it under the terms of the 3-clause
+BSD license [14].
+
+---
+
+mlpack is provided without any warranty of fitness for any purpose.  You
+can redistribute the library and/or modify it under the terms of the 3-clause
+BSD license.
+
+mlpack also contains some usage of the source code of the STB library,
+which is providing support for image loading, saving and resizing. STB is
+dual-licensed under the MIT license and the public domain. This code can be
+found in src/mlpack/core/stb/ for more details about licensing and usage [15].
+
+---
+
+cereal was designed to be fast, light-weight, and easy to extend - it has no external
+dependencies and can be easily bundled with other code or used standalone
+cereal is licensed under the [BSD license](http://opensource.org/licenses/BSD-3-Clause) [12].
+
+---
+
+[10]: https://opensource.org/license/BSD-3-Clause
+[11]: https://www.apache.org/licenses/LICENSE-2.0.html
+[12]: https://github.com/USCiLab/cereal/archive/v1.3.2.tar.gz
+[13]: https://sourceforge.net/projects/arma/files/armadillo-14.0.2.tar.xz
+[14]: https://github.com/mlpack/ensmallen/archive/refs/tags/2.22.2.tar.gz
+[15]: https://github.com/mlpack/mlpack.git
+
+
+---
+
+---
+
+kompyle depends on libcryptominisat5.so.5.13, libarjun.so.2.6
+which depend on cadical and cadiback.
+
+CaDiCaL is distributed under the MIT license.
+CaDiBack is distributed under the MIT license.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions
+
+[16]:
+
+---
+
+---
+
+
+kompyle depends on libcryptominisat5.so.5.13
+
+The general priciple of the licensing is as follows. Everything that's
+needed to run/build/install/link the system is MIT licensed. This allows
+easy distribution and running of the system everywhere. Files that
+have no copyright header are also MIT licensed. Note that in case you
+compile with Bliss, then Bliss's GPL license affects the final executable
+and library.
+
+Everything else that's not needed to run/build/install/link is usually GPLv2
+licensed or compatible (see the copyright headers) [17].
+
+Everything that is needed to build by default is MIT licensed. If you
+specifically instruct the system it can build with Bliss, which are both GPL.
+However, by default CryptoMiniSat will not build with these [18].
+
+In our case, libcryptominisat5.so.5.13 is a pure-MIT artifact!
+
+[17]: LICENSE.txt at msoos/cryptominisat
+[18]: README.markdown at msoos/cryptominisat
+
+
+---
+
+---
+
+
+kompyle depends on libsbva.so.1.1
+
+SBVA's own code is under the MIT License:
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software ... [19]
+
+It also vendors third-party code, and part of that code is compiled into the
+library itself.
+
+nm -D ~/.local/lib/libsbva.so | grep -v "U "
+  _Z11murmur3_vecPjjj                         -> MurmurHash3
+  _Z8getline2..., _Z9getdelim2...             -> NetBSD
+  _ZN5Eigen...CompressedStorage..., SparseVec -> Eigen
+  _ZN4SBVA..., _ZN8SBVAImpl...                -> SBVA
+
+
+* Eigen (sparse-matrix library), MPL-2.0. The Eigen code in this binary is
+  the permissive core only (no LGPL/BSD modules pulled in by SparseCore).
+    - in-tree notice:  eigen-3.4.0/COPYING.README [20], COPYING.MPL2 [21]
+    - project:         https://libeigen.gitlab.io/ [22]
+    - license text:    https://www.mozilla.org/en-US/MPL/2.0/ [23]
+    - FAQ:             https://www.mozilla.org/MPL/2.0/FAQ.html
+
+* src/getline.h, src/getdelim.h, NetBSD 2-clause (BSD-2-Clause). 
+The NetBSD Foundation, contributed by Christos Zoulas.
+    - in-tree files:   src/getline.h [24], src/getdelim.h [25]
+    - license text:    https://www.netbsd.org/about/redistribution.html [26]
+    - SPDX id:         BSD-2-Clause-NetBSD [27]
+
+* src/murmur.h, no notice in-file
+states "Derived from: https://en.wikipedia.org/wiki/MurmurHash" [28],
+whose source is probably Austin Appleby's smhasher [12]:
+    // MurmurHash3 was written by Austin Appleby, and is placed in the public
+    // domain. The author hereby disclaims copyright to this source code.
+Public domain means no license obligation.
+
+
+[19]: https://github.com/meelgroup/sbva/blob/52c1835773cb97edab25dfaa7c27d23ba1e5b71e/LICENSE
+[20]: https://github.com/meelgroup/sbva/blob/52c1835773cb97edab25dfaa7c27d23ba1e5b71e/eigen-3.4.0/COPYING.README
+[21]: https://github.com/meelgroup/sbva/blob/52c1835773cb97edab25dfaa7c27d23ba1e5b71e/eigen-3.4.0/COPYING.MPL2
+[22]: https://libeigen.gitlab.io/
+[23]: https://www.mozilla.org/en-US/MPL/2.0/
+[24]: https://github.com/meelgroup/sbva/blob/52c1835773cb97edab25dfaa7c27d23ba1e5b71e/src/getline.h
+[25]: https://github.com/meelgroup/sbva/blob/52c1835773cb97edab25dfaa7c27d23ba1e5b71e/src/getdelim.h
+[26]: https://www.netbsd.org/about/redistribution.html
+[27]: https://spdx.org/licenses/BSD-2-Clause-NetBSD.html
+[28]: https://github.com/meelgroup/sbva/blob/52c1835773cb97edab25dfaa7c27d23ba1e5b71e/src/murmur.h
+[29]: https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
+
+
+---
+
+---
+
+
+kompyle depends on libarjun.so.2.6
+
+Every file that is compiled into libarjun.so is MIT.
+The project's own license is MIT [30]:
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software ... to deal in the Software without restriction ...
+
+[30]: LICENSE at https://github.com/meelgroup/arjun/blob/bbdda468af0c70ab1cb442639a0800d567e0e1a2/LICENSE
+
+
+---
+
+---
+
+kompyle depends on libapproxmc.so.4.2
+
+Every file that is compiled into libapproxmc.so is MIT.
+The project's own license is MIT [31]:
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software ... to deal in the Software without restriction ...
+
+[31]: LICENSE at https://github.com/meelgroup/approxmc/blob/e1cd45156639c6ca794b14050d5ca546921e7455/LICENSE
+
+
+---
+
+---
+
+
+kompyle depends on libbreakid.so.3.1
+
+Note that while BreakID itself is MIT licensed, bliss,
+the underlying library is LGPLv3 licensed.
+Both are shipped inside libbreakid.so!
+
+I inspected every file, and it indeed is compliant.
+
+
+[32]: LICENSE at https://github.com/meelgroup/breakid/LICENSE
+
+
+---
+
+---
+
+
+kompyle depends on libganak.so
+
+There is a BSD 2-style license for Flow Cutter [33]
+and an MIT license for the rest of Ganak.
+
+* GANAK
+    MIT. Copyright (c) 2018-2025 Mate Soos, Kuldeep S. Meel, Subhajit Roy, Shubham Sharma [33][34].
+
+* BuDDy 2.4 (BDD package)
+    Permissive custom license. Copyright (C) 1996-2002 Jorn Lind-Nielsen [35].
+    Its terms permit use/redistribution "for any purpose, provided that
+    (1) the above copyright notice and the following two paragraphs
+    appear in all copies of the source code and (2) redistributions, including
+    without limitation binaries, reproduce these notices in the supporting
+    documentation."
+
+* Flow Cutter / IFlowCutter
+    BSD-2-Clause. Copyright (c) 2016 Ben Strasser, with modifications
+    "Copyright (C) 2023 Kenji Hashimoto" [33][36].
+    BSD-2 requires binary redistributions to "reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution."
+
+* chibihash64
+    Public domain (Unlicense). By N-R-K. No attribution obligation [37].
+
+[33]: LICENSE.txt
+[34]: AUTHORS at https://github.com/Ibrahimelk/ganak
+[35]: src/buddy-2.4/src/bdd.h, BuDDy 2.4, Jorn Lind-Nielsen
+[36]: src/IFlowCutter.hpp, src/flow-cutter-pace17/LICENSE
+[37]: src/chibihash64.h, N-R-K; SPDX: Unlicense (public domain)
+
+
+---
+
+---
+
+
+kompyle depends on libmd4.so
+
+libmd4.so statically links several components and
+dynamically links others.
+
+* d4 Copyright (C) 2020 Univ. Artois & CNRS, and 
+  (C) 2024 Univ. Artois & CNRS & KU Leuven.
+  The top-level LICENSE is GNU LGPL v2.1.
+  We'll assume LGPL because in commit history,
+  the original authors removed GPL license for a LGPL one [38].
+=>  A mail will be sent to verify!!!
+
+* bipe Copyright (C) 2021 Lagniez Jean-Marie. GNU AFFERO GPL v3-or-later. [39]
+  Since bipe is statically linked to libmd4, the whole combined work
+  must be under AGPL-3.0!! Its bundled Glucose copy ("Glucose_bipe", Audemard & Simon)
+  is under the same AGPL.
+
+* flowCutter Copyright (C) 2016 Ben Strasser. BSD-2-Clause. [40]
+  Binary redistributions must reproduce the copyright notice, the list of
+  conditions, and the disclaimer in the documentation/other materials.
+
+* Glucose 3.0 Copyright (C) 2009/2013 Gilles Audemard, Laurent Simon
+  based on MiniSat (Eén, Sörensson). MIT. [41]
+  Binary form must include the copyright + permission notice.
+
+* MiniSat Copyright (c) 2003-2010 Niklas Eén, Niklas Sörensson. MIT. [42]
+
+* Boost.Multiprecision, Boost Software License 1.0. [43]
+
+* PaToH Copyright (c) 1996 Ümit V. Çatalyürek. NOT open source.
+  Shipped as 3rdParty/patoh{,_mac}/build/*/libpatoh.a,
+  the license lives in the accompanying README, to which patoh.h defers.
+  Terms: free of charge for non-commercial / research use only.
+  commercial use requires a paid license (umit@gatech.edu).
+  The license grants USE, not redistribution. [44]
+=>  need to also mail for permission!!!
+
+
+libmd4.so as currently built may not be redistributedable.
+These are also two mutually incompatible licenses.
+AGPL demands freedoms PaToH forbids.
+
+[38]: LICENSE (top level), per-file headers in src/ and include/md4/
+[39]: 3rdParty/bipe/LICENSE, AGPL headers in 3rdParty/bipe/src/**/*.cpp
+[40]: 3rdParty/flowCutter/LICENSE
+[41]: header banners in 3rdParty/glucose-3.0/core/*.cc, simp/*.cc
+[42]: header banners in src/solvers/cnf/minisat/Solver.cpp
+[43]: https://www.boost.org/LICENSE_1_0.txt
+[44]: 3rdParty/patoh/build/Linux-x86_64/README
+
+---
