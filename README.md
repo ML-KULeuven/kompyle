@@ -17,11 +17,11 @@ It demonstrates how to use Kompyle for compiling.
 
 ## License
 
-Kompyle itself is licensed under the **Apache License 2.0** — see [LICENSE](LICENSE).
+Kompyle source code is licensed under the **Apache License 2.0** — see [LICENSE](LICENSE).
 
 ### Important notice regarding bundled libraries
 
-This binary wheel bundles several third-party libraries. Two carry restrictions
+This binary wheel bundles several third-party libraries. There are restrictions
 beyond the Apache 2.0 license that users should be aware of:
 
 - **PaToH** (compiled into `libmd4`) is licensed for **non-commercial and academic /
