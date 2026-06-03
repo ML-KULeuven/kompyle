@@ -15,17 +15,12 @@ log_info "checking out pinned commit"
 run_cmd git checkout 729939aba815b1837b1590279e66c61ed9d3092f
 
 log_info "configuring"
-# CXXFLAGS only for this configure invocation; use `env` since run_cmd
-# would otherwise treat `CXXFLAGS=...` as the command name.
 run_cmd env CXXFLAGS="-fPIC" ./configure --competition
 
 log_info "building ($NPROC cores)"
 run_cmd make -j$NPROC
 
 log_info "installing"
-# run_cmd $SUDO mkdir -p "${PREFIX}/lib" "${PREFIX}/include/cadical"
-# run_cmd $SUDO cp build/libcadical.a "${PREFIX}/lib/"
-# run_cmd $SUDO cp src/cadical.hpp    "${PREFIX}/include/cadical/"
 run_cmd mkdir -p "${PREFIX}/lib" "${PREFIX}/include/cadical"
 run_cmd cp build/libcadical.a "${PREFIX}/lib/"
 run_cmd cp src/cadical.hpp "${PREFIX}/include/cadical/"

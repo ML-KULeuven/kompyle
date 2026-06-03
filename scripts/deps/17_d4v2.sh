@@ -22,7 +22,6 @@ log_info "building ($NPROC cores)"
 run_cmd cmake --build build -j$NPROC
 
 log_info "installing"
-# run_cmd $SUDO cmake --install build
 run_cmd cmake --install build
 
 cd "$BUILD_DIR"

@@ -21,8 +21,6 @@ log_info "building ($NPROC cores)"
 run_cmd make -j$NPROC
 
 log_info "installing"
-# run_cmd $SUDO mkdir -p "${PREFIX}/lib"
-# run_cmd $SUDO cp libcadiback.a "${PREFIX}/lib/"
 run_cmd mkdir -p "${PREFIX}/lib"
 run_cmd cp libcadiback.a "${PREFIX}/lib/"
 

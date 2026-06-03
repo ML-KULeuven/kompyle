@@ -19,7 +19,6 @@ log_info "building ($NPROC cores)"
 run_cmd make -j$NPROC
 
 log_info "installing"
-# run_cmd $SUDO make install
 run_cmd make install
 
 cd "$BUILD_DIR"
