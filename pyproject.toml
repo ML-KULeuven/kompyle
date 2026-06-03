@@ -1,18 +1,24 @@
 [build-system]
-requires = ["scikit-build-core >=0.4.3",
-            "nanobind >=1.3.2",
-            "klaycircuits",
-            "setuptools-scm>=8",
-
+requires = [
+    "scikit-build-core >=0.4.3",
+    "nanobind >=1.3.2",
+    "klaycircuits",
+    "setuptools-scm>=8",
 ]
 build-backend = "scikit_build_core.build"
 
 [project]
 name = "kompyle"
 dynamic = ["version"]
-description = "interface to several d-DNNF knowledge compilers"
+description = "Python interface to several d-DNNF knowledge compilers"
 readme = "README.md"
 requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = [
+    "LICENSE",
+    "licenses/NOTICE*",
+    "licenses/LICENSE*",
+]
 dependencies = [
     "numpy",
     "klaycircuits",
@@ -21,29 +27,50 @@ authors = [
     { name = "Ibrahim El Kaddouri" },
     { name = "Vincent Derkinderen" },
 ]
+keywords = [
+    "knowledge compilation",
+    "d-DNNF",
+    "model counting",
+    "SAT",
+    "probabilistic inference",
+    "Boolean circuits",
+]
 classifiers = [
-    "License :: OSI Approved :: Apache Software License",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: C++",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Mathematics",
 ]
 
 [project.optional-dependencies]
-dev = ["nanobind >=1.3.2",
-       "pytest",
-       "pytest-xdist",
-       "pysdd",
-       "torch == 2.9.0",
-       "pyright",
-       "cpplint",
-       "auditwheel",
-       "graphviz",
-       "tqdm",
-       "pandas",
-       "matplotlib",
-       "pyyaml",
-       "notebook"
+dev = [
+    "nanobind >=1.3.2",
+    "pytest",
+    "pytest-xdist",
+    "torch",
+    "pysdd",
+    "pyright",
+    "cpplint",
+    "auditwheel",
+    "graphviz",
+    "tqdm",
+    "pandas",
+    "matplotlib",
+    "pyyaml",
+    "notebook",
 ]
 
 [project.urls]
 Homepage = "https://github.com/ML-KULeuven/kompyle"
+Source = "https://github.com/ML-KULeuven/kompyle"
+"Issue Tracker" = "https://github.com/ML-KULeuven/kompyle/issues"
 
 
 [tool.scikit-build]
@@ -59,18 +86,9 @@ wheel.py-api = "cp312"
 
 wheel.packages = ["python/kompyle"]
 
-# Include CMakeLists.txt in source distribution
-sdist.include = ["CMakeLists.txt"]
+# Include CMakeLists.txt and all licenses in source distribution
+sdist.include = ["CMakeLists.txt", "licenses/**"]
 
-#[tool.cibuildwheel]
-## Necessary to see build output from the actual compilation
-#build-verbosity = 1
-#
-## Run pytest to ensure that the package was correctly built
-#test-command = "pytest {project}/tests"
-#test-requires = "pytest"
-#
-# Needed for full C++17 support
 [tool.cibuildwheel.macos.environment]
 MACOSX_DEPLOYMENT_TARGET = "11.0"
 

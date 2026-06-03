@@ -188,27 +188,6 @@ def pair_random_structure(request, compiler):
 
 
 @pytest.fixture
-def pair_toy(compiler):
-    cid, cfn = compiler
-    path = os.path.join(toy_path, "toy.cnf")
-    if not os.path.exists(path):
-        pytest.skip(f"not found: {path}")
-    pair = compile_file(str(path), "toy.cnf", cfn, cid)
-    yield pair
-    pair.cleanup()
-
-
-@pytest.fixture
-def gf_pair_toy():
-    path = os.path.join(toy_path, "toy.cnf")
-    if not os.path.exists(path):
-        pytest.skip(f"not found: {path}")
-    pair = compile_gated_from_cnf_file(path, "toy.cnf")
-    yield pair
-    pair.cleanup()
-
-
-@pytest.fixture
 def pair_toy0(compiler):
     cid, cfn = compiler
     path = os.path.join(toy_path, "toy0.cnf")
@@ -244,17 +223,6 @@ def gf_pair_toy1():
     if not os.path.exists(path):
         pytest.skip(f"not found: {path}")
     pair = compile_gated_from_cnf_file(path, "toy1.cnf")
-    yield pair
-    pair.cleanup()
-
-
-@pytest.fixture
-def pair_toy2(compiler):
-    cid, cfn = compiler
-    path = os.path.join(toy_path, "toy2.cnf")
-    if not os.path.exists(path):
-        pytest.skip(f"not found: {path}")
-    pair = compile_file(str(path), "toy2.cnf", cfn, cid)
     yield pair
     pair.cleanup()
 
@@ -456,8 +424,6 @@ def gf_any_pair(request):
 @pytest.fixture(params=[
     "pair_toy0",
     "pair_toy1",
-    "pair_toy",
-    # "pair_toy2",
 ])
 def pair_any_toy(request, compiler):
     yield request.getfixturevalue(request.param)

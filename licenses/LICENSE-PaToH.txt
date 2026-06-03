@@ -1,0 +1,28 @@
+PaToH: Partitioning Tool for Hypergraphs
+=========================================
+
+Copyright (c) 1996-2023 Ümit V. Çatalyürek
+All rights reserved.
+
+IMPORTANT – REDISTRIBUTION NOT GRANTED
+---------------------------------------
+PaToH is available FREE OF CHARGE for non-commercial and academic /
+research use only.  Commercial use requires a separate paid license
+(contact: umit@gatech.edu).
+
+The PaToH license grants the right to USE the software.  It does NOT
+grant the right to redistribute, sublicense, or re-distribute the
+binary or source in any form without explicit written permission from
+the copyright holder.
+
+Kompyle distributes a copy of libmd4.so which statically links PaToH.
+This wheel is therefore subject to PaToH's non-commercial restriction:
+  - Free to use for academic, research, and non-commercial purposes.
+  - Commercial use requires purchasing a license from Ümit V. Çatalyürek
+    (umit@gatech.edu) before using this software.
+  - You may NOT further redistribute this wheel or any derivative work
+    containing PaToH without explicit written permission from the
+    copyright holder.
+
+The complete PaToH license terms are included with the PaToH
+distribution available at: https://faculty.cc.gatech.edu/~umit/software.html
