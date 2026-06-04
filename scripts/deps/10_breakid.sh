@@ -28,7 +28,6 @@ log_info "building ($NPROC cores)"
 run_cmd cmake --build . -j$NPROC --config $BUILD_TYPE
 
 log_info "installing"
-# run_cmd $SUDO cmake --install . --config $BUILD_TYPE
 run_cmd cmake --install . --config $BUILD_TYPE
 
 cd "$BUILD_DIR"

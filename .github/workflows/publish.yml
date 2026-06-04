@@ -8,22 +8,7 @@ on:
     types: [published]
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      deps: ${{ steps.filter.outputs.deps }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            deps:
-              - 'scripts/deps/**'
-
   build_deps:
-    needs: changes
-    if: needs.changes.outputs.deps == 'true' || github.event_name == 'workflow_dispatch'
     strategy:
       matrix:
         include:

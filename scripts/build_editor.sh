@@ -8,7 +8,6 @@ enter_build_dir
 
 log_step "editor: install build deps"
 if [[ "$(uname)" == "Linux" ]]; then
-  # run_cmd $SUDO dnf install -y clang-tools-extra readline-devel
   run_cmd dnf install -y clang-tools-extra readline-devel
 else
   run_cmd brew install readline

@@ -13,7 +13,6 @@ run_cmd tar xf gmp-6.3.0.tar.xz
 cd gmp-6.3.0
 
 log_info "configuring"
-# run_cmd ./configure --enable-cxx --enable-shared --prefix="${PREFIX}"
 run_cmd env CFLAGS="-std=gnu17 ${CFLAGS:-}" \
   ./configure --enable-cxx --enable-shared --prefix="${PREFIX}"
 
@@ -22,7 +21,6 @@ log_info "building ($NPROC cores)"
 run_cmd make -j$NPROC
 
 log_info "installing"
-# run_cmd $SUDO make install
 run_cmd make install
 
 cd "$BUILD_DIR"

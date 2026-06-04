@@ -17,12 +17,10 @@ run_cmd ./bootstrap.sh --with-libraries=program_options --prefix="${PREFIX}"
 
 log_info "building and installing ($NPROC cores)"
 if [[ "$(uname)" == "Darwin" ]]; then
-  # run_cmd $SUDO ./b2 -j$NPROC install --prefix="${PREFIX}" \
   run_cmd ./b2 -j$NPROC install --prefix="${PREFIX}" \
     cxxflags="-mmacosx-version-min=11.0" \
     linkflags="-mmacosx-version-min=11.0"
 else
-  # run_cmd $SUDO ./b2 -j$NPROC install --prefix="${PREFIX}"
   run_cmd ./b2 -j$NPROC install --prefix="${PREFIX}"
 fi
 
